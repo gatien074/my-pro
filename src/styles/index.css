@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Polices embarquées (auto-hébergées → précachées : 100 % hors ligne)
+ * Space Grotesk — titres et montants    ·    IBM Plex Sans — texte, tableaux
+ * ------------------------------------------------------------------ */
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ------------------------------------------------------------------ *
+ * Jetons de design — « Le Comptoir » (vert · or · bleu du Gabon)
+ * ------------------------------------------------------------------ */
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Vert forêt — couleur primaire (bande verte du drapeau) */
+  --color-brand-50: #edf6f1;
+  --color-brand-100: #d5eade;
+  --color-brand-200: #aed7c2;
+  --color-brand-300: #7dbc9e;
+  --color-brand-400: #4c9e78;
+  --color-brand-500: #2c8159;
+  --color-brand-600: #1e6b47;
+  --color-brand-700: #18553a;
+  --color-brand-800: #123f2c;
+  --color-brand-900: #0d2c1f;
+  --color-brand-950: #071a12;
+
+  /* Or du marché — accent (bande jaune du drapeau) */
+  --color-amber-50: #fdf6e3;
+  --color-amber-100: #faeac0;
+  --color-amber-200: #f4d788;
+  --color-amber-300: #ecc14d;
+  --color-amber-400: #e4ac24;
+  --color-amber-500: #d3940f;
+  --color-amber-600: #b1740b;
+  --color-amber-700: #8b5a09;
+  --color-amber-800: #6a4408;
+  --color-amber-900: #4a2f05;
+
+  /* Bleu Atlantique — information (bande bleue du drapeau) */
+  --color-azur-50: #eef4fb;
+  --color-azur-100: #d8e6f5;
+  --color-azur-200: #b0cdec;
+  --color-azur-300: #7fb0e0;
+  --color-azur-400: #4b8ece;
+  --color-azur-500: #276fba;
+  --color-azur-600: #1b5797;
+  --color-azur-700: #154576;
+  --color-azur-800: #10365c;
+  --color-azur-900: #0b2743;
+
+  /* Ardoise — neutres légèrement verts (remplace le gris bleuté par défaut) */
+  --color-slate-50: #f5f7f4;
+  --color-slate-100: #eaece7;
+  --color-slate-200: #dce0d9;
+  --color-slate-300: #c4cac1;
+  --color-slate-400: #9aa49b;
+  --color-slate-500: #717d74;
+  --color-slate-600: #57625a;
+  --color-slate-700: #424c45;
+  --color-slate-800: #2d3630;
+  --color-slate-900: #1b221e;
+  --color-slate-950: #101613;
+
+  /* Encres — fonds sombres du « comptoir » */
+  --color-encre: #0c2a20;
+  --color-encre-2: #123a2c;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Anneau de focus visible au clavier uniquement */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+@layer components {
+  .champ {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 disabled:bg-slate-100;
+  }
+  .libelle {
+    @apply mb-1.5 block text-sm font-medium text-slate-600;
+  }
+  .carte {
+    @apply rounded-xl border border-slate-200 bg-white;
+  }
+  .titre-page {
+    @apply font-display text-xl font-bold tracking-tight text-slate-900 sm:text-2xl;
+  }
+  .cellule-tabulaire {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  /* Étiquette de prix — tuiles produits de la caisse */
+  .etiquette {
+    @apply relative flex flex-col items-start gap-1 rounded-lg border border-slate-200 bg-white p-3 text-left transition-colors duration-100 hover:border-brand-400 hover:bg-brand-50/50 active:bg-brand-100/60 disabled:opacity-40;
+  }
+  /* Bande tricolore du drapeau (vert · or · bleu) — la signature de l'app */
+  .bande-gabon {
+    background-image: linear-gradient(
+      90deg,
+      var(--color-brand-400) 0 33.333%,
+      var(--color-amber-400) 33.333% 66.666%,
+      var(--color-azur-400) 66.666% 100%
+    );
+  }
+}
+
+/* Impression du ticket (80 mm) et des rapports */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #zone-ticket,
+  #zone-ticket * {
+    visibility: visible !important;
+  }
+  #zone-ticket {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 72mm !important;
+    margin: 0 !important;
+    padding: 3mm 4mm !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  #zone-rapports,
+  #zone-rapports * {
+    visibility: visible !important;
+  }
+  #zone-rapports {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    padding: 8mm !important;
+  }
+  #zone-rapports .zone-non-imprimable {
+    display: none !important;
+  }
+}
+
+@keyframes secousse {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animer-secousse {
+  animation: secousse 0.4s ease;
+}
+
+/* Ouverture d'un panneau : mouvement qui répond à l'action, jamais décoratif */
+@keyframes apparition {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animer-apparition {
+  animation: apparition 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

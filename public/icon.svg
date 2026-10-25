@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0c2a20"/>
+  <text x="256" y="258" text-anchor="middle" font-family="'Space Grotesk', system-ui, sans-serif" font-size="156" font-weight="700" fill="#ffffff">C+S</text>
+  <rect x="112" y="312" width="288" height="32" fill="#1e6b47"/>
+  <rect x="112" y="344" width="288" height="32" fill="#e4ac24"/>
+  <rect x="112" y="376" width="288" height="32" fill="#276fba"/>
+</svg>

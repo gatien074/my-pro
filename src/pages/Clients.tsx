@@ -5,7 +5,6 @@ import { ChevronRight, Plus, Search } from 'lucide-react';
 import { db } from '../db/db';
 import { enregistrerClient } from '../db/ops';
 import { resteDette, statutVisible } from '../lib/calc';
-import { finDeJour } from '../lib/dates';
 import { formatFCFA } from '../lib/money';
 import { initiales } from '../lib/helpers';
 import { Alerte, Bouton, Champ, EtatVide, Libelle, Modale, ZoneTexte } from '../components/ui';
@@ -20,7 +19,6 @@ export default function Clients() {
   const [erreur, setErreur] = useState('');
 
   const encoursParClient = useMemo(() => {
-    finDeJour(); // garantit un statut à jour (échéances dépassées)
     const m = new Map<number, { total: number; retards: number }>();
     for (const d of dettes ?? []) {
       const reste = resteDette(d);

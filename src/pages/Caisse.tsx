@@ -49,7 +49,7 @@ export default function Caisse() {
     if (e.key !== 'Enter') return;
     const q = recherche.trim();
     if (!q) return;
-    const exact = (produits ?? []).find((p) => p.codeBarres === q);
+    const exact = (produits ?? []).find((p) => p.actif && p.codeBarres === q);
     const cible = exact ?? produitsAffiches[0];
     if (cible) {
       panier.ajouter(cible);
@@ -67,6 +67,10 @@ export default function Caisse() {
   }, [produits]);
 
   const lignesAlerte = lignes.filter((l) => (stockMap.get(l.produitId) ?? 0) < l.quantite);
+  const lignesInvalides = lignes.filter((l) => {
+    const p = (produits ?? []).find((x) => x.id === l.produitId);
+    return !p || !p.actif;
+  });
   const bloquerStock = !(settings?.autoriserStockNegatif ?? false);
 
   const brouillon: BrouillonVente | null = lignes.length > 0 ? { lignes, remise: panier.remise, sousTotal, total } : null;
@@ -249,8 +253,21 @@ export default function Caisse() {
           <Bouton
             taille="lg"
             className="w-full"
-            disabled={lignes.length === 0 || (bloquerStock && lignesAlerte.length > 0)}
-            onClick={() => { setErreur(''); setPaiementOuvert(true); }}
+            disabled={
+              lignes.length === 0 ||
+              lignesInvalides.length > 0 ||
+              (bloquerStock && lignesAlerte.length > 0)
+            }
+            onClick={() => {
+              if (lignesInvalides.length > 0) {
+                setErreur(
+                  'Certains articles du panier ne sont plus disponibles (produit archivé ou supprimé).',
+                );
+                return;
+              }
+              setErreur('');
+              setPaiementOuvert(true);
+            }}
           >
             Encaisser {formatFCFA(total)}
           </Bouton>

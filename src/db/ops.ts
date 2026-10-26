@@ -2,7 +2,6 @@ import { db, TOUTES_TABLES } from './db';
 import type {
   Category,
   Client,
-  ClotureCaisse,
   Dette,
   ModePaiement,
   MouvementStock,
@@ -11,7 +10,7 @@ import type {
   User,
 } from './types';
 import { calculeTotaux } from '../lib/calc';
-import { debutAnnee, debutDeJour, finDeJour } from '../lib/dates';
+import { debutAnnee, finDeJour } from '../lib/dates';
 import { hacherPin } from '../lib/pin';
 
 /* ---------------------------------- Settings --------------------------------- */

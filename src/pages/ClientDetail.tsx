@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeft, MessageCircle, Phone, Plus, Send } from 'lucide-react';import { db } from '../db/db';
+import { ArrowLeft, MessageCircle, Phone, Plus, Send } from 'lucide-react';
+import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import { encaisserDette, creerDetteManuelle } from '../db/ops';
 import type { Dette, ModePaiement } from '../db/types';

@@ -116,7 +116,7 @@ export default function Produits() {
     await basculerProduitActif(p.id!, false);
   }
 
-  const margeNutile = edition
+  const margeUtile = edition
     ? margePourcent(Number(champs.prixAchat || 0), Number(champs.prixVente || 0))
     : null;
 
@@ -274,9 +274,9 @@ export default function Produits() {
               <Champ type="number" inputMode="numeric" value={champs.stock} onChange={(e) => setChamps((c) => ({ ...c, stock: e.target.value }))} />
             </div>
           </div>
-          {margeNutile != null && !Number.isNaN(margeNutile) && (
+          {margeUtile != null && !Number.isNaN(margeUtile) && (
             <p className="text-xs text-slate-500">
-              Marge prévue : <span className="font-semibold text-green-700">{formatNombre(Number(champs.prixVente || 0) - Number(champs.prixAchat || 0))} FCFA ({margeNutile} %)</span>
+              Marge prévue : <span className="font-semibold text-green-700">{formatNombre(Number(champs.prixVente || 0) - Number(champs.prixAchat || 0))} FCFA ({margeUtile} %)</span>
             </p>
           )}
           {erreur && <Alerte>{erreur}</Alerte>}

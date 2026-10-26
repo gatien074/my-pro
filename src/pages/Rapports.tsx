@@ -60,7 +60,10 @@ export default function Rapports() {
     () => db.sales.where('date').between(debut, fin).toArray(),
     [debut, fin],
   );
-  const dettes = useLiveQuery(() => db.debts.toArray(), []);
+  const dettes = useLiveQuery(
+    () => db.debts.where('date').between(debut, fin).toArray(),
+    [debut, fin],
+  );
   const utilisateurs = useLiveQuery(() => db.users.toArray(), []);
 
   const vendues = useMemo(() => (ventes ?? []).filter((v) => v.statut === 'vendue'), [ventes]);

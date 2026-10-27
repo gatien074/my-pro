@@ -7,7 +7,7 @@ import type { Vente } from '../../db/types';
 import { depuisDateInput, enDateInput, JOUR_MS } from '../../lib/dates';
 import { formatFCFA, formatNombre, versMontant } from '../../lib/money';
 import type { LignePanier } from '../../store/cart';
-import { Alerte, Bouton, Champ, cn, Liste, Libelle, Modale } from '../ui';
+import { Alerte, Bouton, Champ, cn, Liste, Libelle, Modale, Montant } from '../ui';
 
 export interface BrouillonVente {
   lignes: LignePanier[];
@@ -45,6 +45,16 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
 
   const rendu = useMemo(() => Math.max(0, montantRecu - brouillon.total), [montantRecu, brouillon.total]);
   const reste = brouillon.total - acompte;
+
+  // Montants de saisie rapide pour espèces (arrondis pratiques au Gabon)
+  const montantsRapides = useMemo(() => {
+    const total = brouillon.total;
+    return [
+      { label: 'Total', valeur: total },
+      { label: 'Arrondi 100', valeur: Math.ceil(total / 100) * 100 },
+      { label: 'Arrondi 500', valeur: Math.ceil(total / 500) * 500 },
+    ];
+  }, [brouillon.total]);
 
   async function confirmer() {
     setErreur('');
@@ -91,6 +101,7 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
           </Bouton>
         </>
       }
+      large
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-2">
@@ -100,7 +111,7 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
               type="button"
               onClick={() => { setMode(id); setErreur(''); }}
               className={cn(
-                'flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition',
+                'flex items-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition active:scale-95',
                 mode === id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
               )}
             >
@@ -114,12 +125,29 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
           <div className="space-y-3 rounded-xl bg-slate-50 p-4">
             <div>
               <Libelle>Montant reçu</Libelle>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {montantsRapides.map((m) => (
+                  <button
+                    key={m.label}
+                    type="button"
+                    onClick={() => setMontantRecu(m.valeur)}
+                    className={cn(
+                      'flex flex-col items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-medium transition active:scale-95',
+                      montantRecu === m.valeur ? 'border-brand-600 bg-brand-50 text-brand-700' : 'text-slate-600 hover:border-brand-400',
+                    )}
+                  >
+                    <Montant valeur={formatNombre(m.valeur)} />
+                    <span className="text-[10px] text-slate-400">{m.label}</span>
+                  </button>
+                ))}
+              </div>
               <Champ
                 type="number"
                 inputMode="numeric"
                 value={montantRecu}
                 min={0}
                 onChange={(e) => setMontantRecu(versMontant(e.target.value))}
+                className="text-lg"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -165,7 +193,9 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-slate-600">Reste qui sera dû</span>
-              <span className="cellule-tabulaire font-bold text-amber-700">{formatFCFA(Math.max(0, reste))}</span>
+              <span className="cellule-tabulaire font-bold text-amber-700">
+                <Montant valeur={formatNombre(Math.max(0, reste))} />
+              </span>
             </div>
           </div>
         )}
@@ -174,9 +204,13 @@ export default function PaymentDialog({ brouillon, vendeurId, onFermer, onTermin
 
         <div className="rounded-xl border border-slate-200 px-4 py-3 text-sm">
           <div className="flex justify-between py-0.5"><span className="text-slate-500">Articles</span><span>{brouillon.lignes.reduce((s, l) => s + l.quantite, 0)}</span></div>
-          <div className="flex justify-between py-0.5"><span className="text-slate-500">Sous-total</span><span className="cellule-tabulaire">{formatNombre(brouillon.sousTotal)}</span></div>
-          {brouillon.remise > 0 && <div className="flex justify-between py-0.5"><span className="text-slate-500">Remise</span><span className="cellule-tabulaire">− {formatNombre(brouillon.remise)}</span></div>}
-          <div className="flex justify-between border-t border-slate-100 pt-1.5 font-bold text-slate-900"><span>Total</span><span className="cellule-tabulaire font-display">{formatFCFA(brouillon.total)}</span></div>
+          <div className="flex justify-between py-0.5"><span className="text-slate-500">Sous-total</span><span className="cellule-tabulaire">
+            <Montant valeur={formatNombre(brouillon.sousTotal)} />
+          </span></div>
+          {brouillon.remise > 0 && <div className="flex justify-between py-0.5"><span className="text-slate-500">Remise</span><span className="cellule-tabulaire">− <Montant valeur={formatNombre(brouillon.remise)} /></span></div>}
+          <div className="flex justify-between border-t border-slate-100 pt-1.5 font-bold text-slate-900"><span>Total</span><span className="cellule-tabulaire font-display">
+            <Montant valeur={formatNombre(brouillon.total)} />
+          </span></div>
         </div>
       </div>
     </Modale>

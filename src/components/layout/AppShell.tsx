@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { BarChart3, Boxes, Lock, Package, Settings, ShoppingCart, Users } from 'lucide-react';
+import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, Users } from 'lucide-react';
 import { useSettings } from '../../db/hooks';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
@@ -11,6 +11,7 @@ const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingC
   { vers: '/stock', libelle: 'Stock', icone: Boxes, roles: ['gerant'] },
   { vers: '/clients', libelle: 'Clients', icone: Users, roles: ['gerant', 'caissier'] },
   { vers: '/rapports', libelle: 'Rapports', icone: BarChart3, roles: ['gerant'] },
+  { vers: '/cloture', libelle: 'Clôture caisse', icone: CreditCard, roles: ['gerant'] },
   { vers: '/parametres', libelle: 'Paramètres', icone: Settings, roles: ['gerant'] },
 ];
 

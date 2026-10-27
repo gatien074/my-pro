@@ -5,10 +5,10 @@ import { db } from '../db/db';
 import { enregistrerMouvementStock } from '../db/ops';
 import type { Produit } from '../db/types';
 import { formaterDateHeure } from '../lib/dates';
-import { formatFCFA, formatNombre, versMontant } from '../lib/money';
+import { formatNombre, versMontant } from '../lib/money';
 import { LIBELLES_MOUVEMENTS } from '../lib/helpers';
 import { useSession } from '../store/session';
-import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale } from '../components/ui';
+import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale, Montant } from '../components/ui';
 
 type Action = 'entree' | 'perte' | 'ajustement';
 
@@ -117,11 +117,13 @@ export default function Stock() {
             <p className="cellule-tabulaire font-display text-lg font-bold text-slate-900">{formatNombre((produits ?? []).filter((p) => p.actif).length)}</p>
           </div>
         </div>
-        <div className="carte flex items-center gap-3 p-4">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Layers className="size-5" /></div>
+        <div className="carte-accent flex items-center gap-3 p-4">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><Layers className="size-5" /></div>
           <div>
             <p className="text-xs font-medium text-slate-500">Valeur du stock (prix d'achat)</p>
-            <p className="cellule-tabulaire font-display text-lg font-bold text-slate-900">{formatFCFA(valeurStock)}</p>
+            <p className="cellule-tabulaire font-display text-lg font-bold text-amber-800">
+              <Montant valeur={formatNombre(valeurStock)} />
+            </p>
           </div>
         </div>
       </div>

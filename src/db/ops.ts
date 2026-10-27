@@ -408,42 +408,6 @@ export async function creerUtilisateur(input: { nom: string; role: User['role'];
   return db.users.add({ nom, role: input.role, pinHash, actif: true });
 }
 
-/**
- * Crée un utilisateur lié à un compte Google, ou retourne l'existant.
- * Les utilisateurs Google n'ont pas de PIN (pinHash vide) : ils se connectent
- * directement via le bouton Google.
- */
-export async function creerOuLierUtilisateurGoogle(input: {
-  nom: string;
-  email: string;
-  googleId: string;
-  imageUrl?: string;
-  role?: User['role'];
-}): Promise<User> {
-  const existant = await db.users.where('googleId').equals(input.googleId).first();
-  if (existant) {
-    // Mettre à jour le nom/email au cas où ils ont changé côté Google.
-    await db.users.update(existant.id!, {
-      nom: input.nom.trim() || existant.nom,
-      email: input.email || existant.email,
-    });
-    return { ...existant, nom: input.nom.trim() || existant.nom, email: input.email || existant.email };
-  }
-
-  const id = await db.users.add({
-    nom: input.nom.trim() || 'Utilisateur Google',
-    role: input.role ?? 'caissier',
-    pinHash: '',
-    actif: true,
-    googleId: input.googleId,
-    email: input.email,
-  });
-
-  const user = await db.users.get(id);
-  if (!user) throw new Error('Impossible de créer l’utilisateur Google.');
-  return user;
-}
-
 export async function redefinirPin(userId: number, pin: string): Promise<void> {
   const pinHash = await hacherPin(pin);
   await db.users.update(userId, { pinHash });

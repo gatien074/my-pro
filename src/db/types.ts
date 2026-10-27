@@ -30,10 +30,6 @@ export interface User {
   role: Role;
   pinHash: string;
   actif: boolean;
-  /** Identifiant Google (sub) pour la connexion via Google Identity Services. */
-  googleId?: string;
-  /** Adresse e-mail du compte Google (si connecté via Google). */
-  email?: string;
 }
 
 export interface Category {

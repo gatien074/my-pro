@@ -8,7 +8,7 @@ import type { Produit } from '../db/types';
 import { formatNombre } from '../lib/money';
 import { margePourcent } from '../lib/calc';
 import { useSession } from '../store/session';
-import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale } from '../components/ui';
+import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale, Montant } from '../components/ui';
 
 function badgeStock(p: Produit): { couleur: 'vert' | 'ambre' | 'rouge'; texte: string } {
   if (p.stock <= 0) return { couleur: 'rouge', texte: 'Épuisé' };
@@ -189,8 +189,12 @@ export default function Produits() {
                         {p.codeBarres && <p className="text-xs text-slate-400">{p.codeBarres}</p>}
                       </td>
                       <td className="hidden px-3 py-2.5 text-slate-500 md:table-cell">{categoriesMap.get(p.categoryId ?? -1)?.nom ?? '—'}</td>
-                      <td className="cellule-tabulaire px-3 py-2.5 text-right font-semibold text-slate-700">{formatNombre(p.prixVente)}</td>
-                      <td className="cellule-tabulaire hidden px-3 py-2.5 text-right text-slate-500 sm:table-cell">{formatNombre(p.prixAchat)}</td>
+                      <td className="cellule-tabulaire px-3 py-2.5 text-right font-semibold text-slate-700">
+                        <Montant valeur={formatNombre(p.prixVente)} />
+                      </td>
+                      <td className="cellule-tabulaire hidden px-3 py-2.5 text-right text-slate-500 sm:table-cell">
+                        <Montant valeur={formatNombre(p.prixAchat)} />
+                      </td>
                       <td className="cellule-tabulaire px-3 py-2.5 text-right text-green-700">
                         {marge != null ? `${formatNombre(p.prixVente - p.prixAchat)} (${marge} %)` : '—'}
                       </td>

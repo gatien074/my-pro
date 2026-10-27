@@ -47,12 +47,13 @@
 
 /* ------------------------------------------------------------------ *
  * Jetons de design — « Le Comptoir » (vert · or · bleu du Gabon)
+ * Les couleurs du drapeau servent d'accents délibérés, pas de décoration partout.
  * ------------------------------------------------------------------ */
 @theme {
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Vert forêt — couleur primaire (bande verte du drapeau) */
+  /* Vert forêt — primaire (bande verte) */
   --color-brand-50: #edf6f1;
   --color-brand-100: #d5eade;
   --color-brand-200: #aed7c2;
@@ -65,7 +66,7 @@
   --color-brand-900: #0d2c1f;
   --color-brand-950: #071a12;
 
-  /* Or du marché — accent (bande jaune du drapeau) */
+  /* Or du marché — accent ponctuel (bande jaune) */
   --color-amber-50: #fdf6e3;
   --color-amber-100: #faeac0;
   --color-amber-200: #f4d788;
@@ -77,7 +78,7 @@
   --color-amber-800: #6a4408;
   --color-amber-900: #4a2f05;
 
-  /* Bleu Atlantique — information (bande bleue du drapeau) */
+  /* Bleu Atlantique — information (bande bleue) */
   --color-azur-50: #eef4fb;
   --color-azur-100: #d8e6f5;
   --color-azur-200: #b0cdec;
@@ -89,7 +90,7 @@
   --color-azur-800: #10365c;
   --color-azur-900: #0b2743;
 
-  /* Ardoise — neutres légèrement verts (remplace le gris bleuté par défaut) */
+  /* Ardoise — neutres légèrement verts */
   --color-slate-50: #f5f7f4;
   --color-slate-100: #eaece7;
   --color-slate-200: #dce0d9;
@@ -102,9 +103,19 @@
   --color-slate-900: #1b221e;
   --color-slate-950: #101613;
 
-  /* Encres — fonds sombres du « comptoir » */
+  /* Encres — fonds sombres */
   --color-encre: #0c2a20;
   --color-encre-2: #123a2c;
+
+  /* Échelle typographique — The Elements of Typographic Style */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 }
 
 @layer base {
@@ -114,6 +125,8 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-slate-50);
+    color: var(--color-slate-900);
   }
   /* Anneau de focus visible au clavier uniquement */
   a:focus-visible,
@@ -121,32 +134,101 @@
   [role="button"]:focus-visible {
     outline: 2px solid var(--color-brand-500);
     outline-offset: 2px;
-    border-radius: 8px;
+    border-radius: 6px;
+  }
+  /* Lignes de texte lisibles, jamais justifiées */
+  p {
+    max-width: 65ch;
   }
 }
 
 @layer components {
+  /* ---------------- Bouton ---------------- */
+  .bouton {
+    @apply inline-flex select-none items-center justify-center font-semibold transition-colors duration-150 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0;
+  }
+  .bouton-sm { @apply gap-1.5 px-3 py-1.5 text-xs rounded-lg; }
+  .bouton-md { @apply gap-2 px-4 py-2.5 text-sm rounded-lg; }
+  .bouton-lg { @apply gap-2 px-5 py-3.5 text-base rounded-xl; }
+
+  .bouton-primaire {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800;
+  }
+  .bouton-secondaire {
+    @apply bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400;
+  }
+  .bouton-fantome {
+    @apply text-slate-500 hover:bg-slate-100 hover:text-slate-700;
+  }
+  .bouton-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
+  }
+  .bouton-accent {
+    @apply bg-amber-400 text-amber-900 hover:bg-amber-500 active:bg-amber-600;
+  }
+
+  /* ---------------- Inputs ---------------- */
   .champ {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 disabled:bg-slate-100;
+  }
+  .champ:focus {
+    @apply ring-2 ring-brand-500/25;
   }
   .libelle {
     @apply mb-1.5 block text-sm font-medium text-slate-600;
   }
+  /* Pas de label au-dessus du contenu par défaut — le libelle est optionnel et explicite */
+
+  /* ---------------- Cartes différenciées par hiérarchie ---------------- */
   .carte {
     @apply rounded-xl border border-slate-200 bg-white;
   }
+  .carte-compacte {
+    @apply rounded-lg border border-slate-200 bg-white p-3;
+  }
+  /* Carte d'accent : utilisée pour une information clé, pas pour tout */
+  .carte-accent {
+    @apply rounded-xl border border-amber-200 bg-amber-50;
+  }
+
+  /* ---------------- Titres ---------------- */
   .titre-page {
     @apply font-display text-xl font-bold tracking-tight text-slate-900 sm:text-2xl;
   }
+  .sous-titre {
+    @apply text-sm font-semibold text-slate-600 uppercase tracking-wider;
+  }
+
+  /* ---------------- Badge ---------------- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap;
+  }
+  .badge-vert { @apply bg-brand-100 text-brand-800; }
+  .badge-ambre { @apply bg-amber-100 text-amber-800; }
+  .badge-rouge { @apply bg-red-100 text-red-700; }
+  .badge-bleu { @apply bg-azur-100 text-azur-700; }
+  .badge-gris { @apply bg-slate-100 text-slate-600; }
+  .badge-teal { @apply bg-brand-100 text-brand-800; }
+
+  /* ---------------- Montants ---------------- */
   .cellule-tabulaire {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
   }
-  /* Étiquette de prix — tuiles produits de la caisse */
+  .montant {
+    @apply font-display font-bold text-slate-900;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  .montant-positif { @apply text-brand-700; }
+  .montant-negatif { @apply text-red-600; }
+
+  /* ---------------- Étiquettes produits (caisse) ---------------- */
   .etiquette {
     @apply relative flex flex-col items-start gap-1 rounded-lg border border-slate-200 bg-white p-3 text-left transition-colors duration-100 hover:border-brand-400 hover:bg-brand-50/50 active:bg-brand-100/60 disabled:opacity-40;
   }
-  /* Bande tricolore du drapeau (vert · or · bleu) — la signature de l'app */
+
+  /* ---------------- Bande tricolore Gabon ---------------- */
   .bande-gabon {
     background-image: linear-gradient(
       90deg,
@@ -155,75 +237,73 @@
       var(--color-azur-400) 66.666% 100%
     );
   }
-}
 
-/* Impression du ticket (80 mm) et des rapports */
-@media print {
-  body * {
-    visibility: hidden !important;
+  /* ---------------- Impression ---------------- */
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+    #zone-ticket,
+    #zone-ticket * {
+      visibility: visible !important;
+    }
+    #zone-ticket {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 72mm !important;
+      margin: 0 !important;
+      padding: 3mm 4mm !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    #zone-rapports,
+    #zone-rapports * {
+      visibility: visible !important;
+    }
+    #zone-rapports {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      padding: 8mm !important;
+    }
+    #zone-rapports .zone-non-imprimable {
+      display: none !important;
+    }
   }
-  #zone-ticket,
-  #zone-ticket * {
-    visibility: visible !important;
-  }
-  #zone-ticket {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 72mm !important;
-    margin: 0 !important;
-    padding: 3mm 4mm !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  #zone-rapports,
-  #zone-rapports * {
-    visibility: visible !important;
-  }
-  #zone-rapports {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    padding: 8mm !important;
-  }
-  #zone-rapports .zone-non-imprimable {
-    display: none !important;
-  }
-}
 
-@keyframes secousse {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
-}
-
-.animer-secousse {
-  animation: secousse 0.4s ease;
-}
-
-/* Ouverture d'un panneau : mouvement qui répond à l'action, jamais décoratif */
-@keyframes apparition {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
+  /* ---------------- Motion : réponse à l'action, jamais décorative ---------------- */
+  @keyframes secousse {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
   }
-  to {
-    opacity: 1;
-    transform: none;
+  .animer-secousse {
+    animation: secousse 0.4s ease;
   }
-}
 
-.animer-apparition {
-  animation: apparition 0.18s ease-out;
-}
+  @keyframes apparition {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .animer-apparition {
+    animation: apparition 0.18s ease-out;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }

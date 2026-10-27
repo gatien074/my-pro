@@ -17,7 +17,7 @@ import {
   LIBELLES_STATUTS_DETTE,
   LIBELLES_STATUTS_VENTE,
 } from '../lib/helpers';
-import { Alerte, Badge, Bouton, Champ, EtatVide, Libelle, Liste, Modale, ZoneTexte } from '../components/ui';
+import { Alerte, Badge, Bouton, Champ, EtatVide, Libelle, Liste, Modale, Montant, ZoneTexte } from '../components/ui';
 
 type StatutAffiche = ReturnType<typeof statutVisible>;
 
@@ -129,7 +129,9 @@ export default function ClientDetail() {
         </div>
         <div className="text-right">
           <p className="text-xs font-medium text-slate-500">Total dû</p>
-          <p className={`cellule-tabulaire font-display text-2xl font-bold ${totalDu > 0 ? 'text-red-600' : 'text-green-700'}`}>{formatFCFA(totalDu)}</p>
+          <p className={`cellule-tabulaire font-display text-2xl font-bold ${totalDu > 0 ? 'text-red-600' : 'text-green-700'}`}>
+            <Montant valeur={formatNombre(totalDu)} />
+          </p>
         </div>
       </div>
 
@@ -172,10 +174,14 @@ export default function ClientDetail() {
               return (
                 <li key={d.id} className="flex flex-wrap items-center gap-2 py-3">
                   <div className="min-w-40 flex-1">
-                    <p className="text-sm font-semibold text-slate-800">{formatFCFA(d.montant)}</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      <Montant valeur={formatNombre(d.montant)} />
+                    </p>
                     <p className="text-xs text-slate-400">
                       {formaterDate(d.date)} · payé {formatNombre(d.montantPaye)} · reste{' '}
-                      <span className="font-bold text-red-600">{formatNombre(resteDette(d))}</span>
+                      <span className="font-bold text-red-600">
+                        <Montant valeur={formatNombre(resteDette(d))} />
+                      </span>
                       {vente ? ` · vente ${vente.numero}` : ` · ${d.motif ?? 'Dette'}`}
                     </p>
                   </div>
@@ -212,7 +218,9 @@ export default function ClientDetail() {
               <ul className="divide-y divide-slate-100 text-sm">
                 {closes.map((d) => (
                   <li key={d.id} className="flex items-center justify-between gap-2 py-2">
-                    <span className="text-slate-600">{formatFCFA(d.montant)} · {formaterDate(d.date)}</span>
+                    <span className="text-slate-600">
+                      <Montant valeur={formatNombre(d.montant)} /> · {formaterDate(d.date)}
+                    </span>
                     <Badge couleur={COULEUR_STATUT[statutVisible(d)]}>{LIBELLES_STATUTS_DETTE[statutVisible(d)]}</Badge>
                   </li>
                 ))}
@@ -230,7 +238,9 @@ export default function ClientDetail() {
                       <span className="ml-2 text-xs text-slate-400">{formaterDate(v.date)}</span>
                     </span>
                     <span className="flex items-center gap-2">
-                      <span className="cellule-tabulaire font-semibold text-slate-700">{formatNombre(v.total)}</span>
+                      <span className="cellule-tabulaire font-semibold text-slate-700">
+                        <Montant valeur={formatNombre(v.total)} />
+                      </span>
                       <Badge couleur={v.statut === 'annulee' ? 'rouge' : v.mode === 'credit' ? 'ambre' : 'gris'}>
                         {v.statut === 'annulee' ? LIBELLES_STATUTS_VENTE.annulee : LIBELLES_MODES[v.mode]}
                       </Badge>

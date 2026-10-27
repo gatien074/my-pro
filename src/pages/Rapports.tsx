@@ -11,8 +11,9 @@ import { debutDeJour, debutDuMois, debutSemaine, finDeJour, finDuMois, depuisDat
 import { formatFCFA, formatNombre } from '../lib/money';
 import { LIBELLES_MODES } from '../lib/helpers';
 import { telechargerCsv } from '../lib/csv';
-import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle } from '../components/ui';
+import { Alerte, Badge, Bouton, CarteStats, Champ, cn, EtatVide, Libelle } from '../components/ui';
 import Ticket from '../components/caisse/Ticket';
+import jsPDF from 'jspdf';
 
 type Preset = 'aujourdhui' | 'hier' | '7j' | '30j' | 'mois' | 'moisDernier' | 'periode';
 
@@ -60,10 +61,7 @@ export default function Rapports() {
     () => db.sales.where('date').between(debut, fin).toArray(),
     [debut, fin],
   );
-  const dettes = useLiveQuery(
-    () => db.debts.where('date').between(debut, fin).toArray(),
-    [debut, fin],
-  );
+  const dettes = useLiveQuery(() => db.debts.toArray(), []);
   const utilisateurs = useLiveQuery(() => db.users.toArray(), []);
 
   const vendues = useMemo(() => (ventes ?? []).filter((v) => v.statut === 'vendue'), [ventes]);
@@ -125,13 +123,15 @@ export default function Rapports() {
     let encours = 0;
     let retard = 0;
     for (const d of dettes ?? []) {
+      // Filtrer par période en JS (la table debts n'a pas d'index sur 'date')
+      if (d.date < debut || d.date > fin) continue;
       const reste = resteDette(d);
       if (reste <= 0) continue;
       encours += reste;
       if (statutVisible(d) === 'en_retard') retard += reste;
     }
     return { encours, retard };
-  }, [dettes]);
+  }, [dettes, debut, fin]);
 
   // Journal des ventes de la période (annulées comprises), filtrable par n° ou vendeur
   const vendeursMap = useMemo(() => new Map((utilisateurs ?? []).map((u) => [u.id!, u.nom])), [utilisateurs]);
@@ -170,6 +170,84 @@ export default function Rapports() {
     );
   }
 
+  function exporterPDF() {
+    const doc = new jsPDF();
+    const nomBoutique = settings?.nomBoutique ?? 'Caisse & Stock';
+    const periodeLabel = `${formaterDateCourte(debut)} → ${formaterDateCourte(fin)}`;
+
+    // En-tête
+    doc.setFontSize(16);
+    doc.text(nomBoutique, 14, 18);
+    doc.setFontSize(11);
+    doc.text('Rapport de ventes', 14, 28);
+    doc.text(`Période : ${periodeLabel}`, 14, 36);
+    doc.text(`Généré le : ${formaterDateHeure(Date.now())}`, 14, 44);
+
+    let y = 56;
+
+    // KPIs
+    doc.setFontSize(12);
+    doc.text('Indicateurs', 14, y);
+    y += 7;
+    doc.setFontSize(10);
+    const kpiLines = [
+      `Chiffre d'affaires : ${formatFCFA(kpis.ca)}`,
+      `Bénéfice brut : ${formatFCFA(kpis.benefice)}`,
+      `Nombre de ventes : ${kpis.nb}`,
+      `Panier moyen : ${formatFCFA(kpis.panierMoyen)}`,
+      `Marge : ${kpis.marge} %`,
+      `Remises accordées : ${formatFCFA(kpis.remises)}`,
+    ];
+    for (const line of kpiLines) {
+      doc.text(line, 14, y);
+      y += 6;
+    }
+
+    y += 6;
+
+    // Tableau des ventes
+    doc.setFontSize(12);
+    doc.text('Journal des ventes', 14, y);
+    y += 7;
+
+    const ventesTriees = [...(ventes ?? [])].sort((a, b) => b.date - a.date);
+
+    // En-têtes de colonnes
+    doc.setFontSize(9);
+    const colX = [14, 42, 72, 102, 132, 162];
+    const headers = ['N°', 'Date', 'Mode', 'Articles', 'Total', 'Statut'];
+    headers.forEach((h, i) => {
+      doc.text(h, colX[i], y);
+    });
+    y += 5;
+
+    doc.line(14, y, 190, y);
+    y += 5;
+
+    for (const v of ventesTriees) {
+      if (y > 285) {
+        doc.addPage();
+        y = 20;
+      }
+      const statut = v.statut === 'annulee' ? 'Annulée' : 'Vendue';
+      const row = [
+        v.numero,
+        formaterDateCourte(v.date),
+        LIBELLES_MODES[v.mode],
+        String(v.lignes.reduce((s, l) => s + l.quantite, 0)),
+        formatFCFA(v.total),
+        statut,
+      ];
+      row.forEach((cell, i) => {
+        doc.text(cell, colX[i], y);
+      });
+      y += 5;
+    }
+
+    const fileName = `rapport-${enDateInput(debut)}_${enDateInput(fin)}.pdf`;
+    doc.save(fileName);
+  }
+
   return (
     <div className="space-y-4 p-3 lg:p-4">
       <div className="flex items-center justify-between">
@@ -177,6 +255,9 @@ export default function Rapports() {
         <div className="zone-non-imprimable flex gap-2">
           <Bouton variante="secondaire" taille="sm" onClick={exporterVentes}>
             <Download className="size-4" /> Export CSV
+          </Bouton>
+          <Bouton variante="secondaire" taille="sm" onClick={exporterPDF}>
+            <Download className="size-4" /> Export PDF
           </Bouton>
           <Bouton variante="secondaire" taille="sm" onClick={() => window.print()}>
             <Printer className="size-4" /> Imprimer
@@ -224,11 +305,11 @@ export default function Rapports() {
           <>
             {/* KPI */}
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              <CarteValue libelle="Chiffre d'affaires" valeur={formatFCFA(kpis.ca)} />
-              <CarteValue libelle="Bénéfice brut" valeur={formatFCFA(kpis.benefice)} accent />
-              <CarteValue libelle="Ventes" valeur={formatNombre(kpis.nb)} />
-              <CarteValue libelle="Panier moyen" valeur={formatFCFA(kpis.panierMoyen)} />
-              <CarteValue libelle="Marge" valeur={`${formatNombre(kpis.marge)} %`} />
+              <CarteStats libelle="Chiffre d'affaires" valeur={formatFCFA(kpis.ca)} />
+              <CarteStats libelle="Bénéfice brut" valeur={formatFCFA(kpis.benefice)} accent />
+              <CarteStats libelle="Ventes" valeur={formatNombre(kpis.nb)} />
+              <CarteStats libelle="Panier moyen" valeur={formatFCFA(kpis.panierMoyen)} />
+              <CarteStats libelle="Marge" valeur={`${formatNombre(kpis.marge)} %`} />
             </div>
 
             {/* Courbe */}
@@ -442,11 +523,4 @@ export default function Rapports() {
   );
 }
 
-function CarteValue({ libelle, valeur, accent }: { libelle: string; valeur: string; accent?: boolean }) {
-  return (
-    <div className={cn('carte min-w-0 p-4', accent && 'border-brand-300 bg-brand-50')}>
-      <p className="truncate text-xs font-medium text-slate-500">{libelle}</p>
-      <p className={cn('cellule-tabulaire font-display truncate text-lg font-bold', accent ? 'text-brand-700' : 'text-slate-900')}>{valeur}</p>
-    </div>
-  );
-}
+

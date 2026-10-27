@@ -8,7 +8,7 @@ import { calculeTotaux } from '../lib/calc';
 import { formatFCFA, formatNombre, versMontant } from '../lib/money';
 import { usePanier } from '../store/cart';
 import { useSession } from '../store/session';
-import { Alerte, Badge, Bouton, cn, EtatVide } from '../components/ui';
+import { Alerte, Badge, Bouton, cn, EtatVide, Montant } from '../components/ui';
 import PaymentDialog, { type BrouillonVente } from '../components/caisse/PaymentDialog';
 import Ticket from '../components/caisse/Ticket';
 
@@ -137,7 +137,7 @@ export default function Caisse() {
           ) : produitsAffiches.length === 0 ? (
             <EtatVide titre="Aucun produit trouvé" texte="Modifiez la recherche, ou ajoutez vos produits dans l'onglet Produits." />
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {produitsAffiches.map((p) => {
                 const doitBloquer = bloquerStock && p.stock <= 0;
                 return (
@@ -153,7 +153,9 @@ export default function Caisse() {
                     className="etiquette"
                   >
                     <span className="line-clamp-2 text-sm font-semibold text-slate-800">{p.nom}</span>
-                    <span className="cellule-tabulaire text-base font-bold text-brand-700">{formatFCFA(p.prixVente)}</span>
+                    <span className="cellule-tabulaire text-base font-bold text-brand-700">
+                      <Montant valeur={formatNombre(p.prixVente)} />
+                    </span>
                     <span className="mt-auto flex w-full items-center justify-between">
                       <span className="text-xs text-slate-400">/ {p.unite}</span>
                       <Badge couleur={couleurStock(p)}>
@@ -196,8 +198,8 @@ export default function Caisse() {
                     <p className="cellule-tabulaire text-xs text-slate-400">{formatNombre(l.prixUnitaire)} × {l.quantite}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => panier.decrementer(l.produitId)} className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100" aria-label="Diminuer">
-                      <Minus className="size-4" />
+                    <button type="button" onClick={() => panier.decrementer(l.produitId)} className="flex size-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100 touch-manipulation" aria-label="Diminuer">
+                      <Minus className="size-5" />
                     </button>
                     <input
                       type="number"
@@ -206,13 +208,15 @@ export default function Caisse() {
                       value={l.quantite}
                       onChange={(e) => panier.definirQuantite(l.produitId, versMontant(e.target.value))}
                       aria-label={`Quantité de ${l.nom}`}
-                      className="cellule-tabulaire w-14 rounded-lg border border-slate-200 bg-white py-1 text-center text-sm font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25"
+                      className="cellule-tabulaire w-16 rounded-lg border border-slate-200 bg-white py-2 text-center text-base font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 touch-manipulation"
                     />
-                    <button type="button" onClick={() => { const p = (produits ?? []).find((x) => x.id === l.produitId); if (p) panier.ajouter(p); }} className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100" aria-label="Augmenter">
-                      <Plus className="size-4" />
+                    <button type="button" onClick={() => { const p = (produits ?? []).find((x) => x.id === l.produitId); if (p) panier.ajouter(p); }} className="flex size-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100 touch-manipulation" aria-label="Augmenter">
+                      <Plus className="size-5" />
                     </button>
                   </div>
-                  <span className="cellule-tabulaire w-20 text-right text-sm font-bold text-slate-800">{formatNombre(l.prixUnitaire * l.quantite)}</span>
+                  <span className="cellule-tabulaire w-20 text-right text-sm font-bold text-slate-800">
+                    <Montant valeur={formatNombre(l.prixUnitaire * l.quantite)} />
+                  </span>
                   <button type="button" onClick={() => { const p = (produits ?? []).find((x) => x.id === l.produitId); if (p) retirer(p); }} className="text-slate-300 hover:text-red-600" aria-label="Retirer">
                     <Trash2 className="size-4" />
                   </button>
@@ -237,12 +241,16 @@ export default function Caisse() {
           {panier.remise > 0 && (
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Sous-total</span>
-              <span className="cellule-tabulaire">{formatFCFA(sousTotal)}</span>
+              <span className="cellule-tabulaire">
+                <Montant valeur={formatNombre(sousTotal)} />
+              </span>
             </div>
           )}
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-700">Total</span>
-            <span className="cellule-tabulaire font-display text-2xl font-bold text-brand-700">{formatFCFA(total)}</span>
+            <span className="cellule-tabulaire font-display text-2xl font-bold text-brand-700">
+              <Montant valeur={formatNombre(total)} />
+            </span>
           </div>
           {bloquerStock && lignesAlerte.length > 0 && (
             <Alerte type="erreur">

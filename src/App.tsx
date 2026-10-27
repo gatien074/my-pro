@@ -8,6 +8,7 @@ import Stock from './pages/Stock';
 import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
 import Rapports from './pages/Rapports';
+import ClotureCaisse from './pages/ClotureCaisse';
 import Parametres from './pages/Parametres';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/rapports" element={<Rapports />} />
+          <Route path="/cloture" element={<ClotureCaisse />} />
           <Route path="/parametres" element={<Parametres />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

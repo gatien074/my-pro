@@ -7,21 +7,21 @@ export function cn(...classes: Array<string | false | null | undefined>): string
 
 /* ---------------------------------- Bouton ---------------------------------- */
 
-type Variante = 'primaire' | 'accent' | 'secondaire' | 'fantome' | 'danger';
-type Taille = 'md' | 'lg' | 'sm';
+type Variante = 'primaire' | 'secondaire' | 'fantome' | 'danger' | 'accent';
+type Taille = 'sm' | 'md' | 'lg';
 
 const VARIANTES: Record<Variante, string> = {
-  primaire: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800',
-  accent: 'bg-amber-400 text-amber-900 hover:bg-amber-500 active:bg-amber-600',
-  secondaire: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400',
-  fantome: 'text-slate-500 hover:bg-slate-100 hover:text-slate-700',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
+  primaire: 'bouton bouton-primaire',
+  secondaire: 'bouton bouton-secondaire',
+  fantome: 'bouton bouton-fantome',
+  danger: 'bouton bouton-danger',
+  accent: 'bouton bouton-accent',
 };
 
 const TAILLES: Record<Taille, string> = {
-  sm: 'gap-1.5 px-3 py-1.5 text-xs rounded-lg',
-  md: 'gap-2 px-4 py-2.5 text-sm rounded-lg',
-  lg: 'gap-2 px-5 py-3.5 text-base rounded-xl',
+  sm: 'bouton-sm',
+  md: 'bouton-md',
+  lg: 'bouton-lg',
 };
 
 interface BoutonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,7 +33,6 @@ export function Bouton({ variante = 'primaire', taille = 'md', className, ...pro
   return (
     <button
       className={cn(
-        'inline-flex select-none items-center justify-center font-semibold transition-colors duration-100 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0',
         VARIANTES[variante],
         TAILLES[taille],
         className,
@@ -73,22 +72,31 @@ export function Libelle({ children }: { children: ReactNode }) {
 
 /* ----------------------------------- Badge ----------------------------------- */
 
-type CouleurBadge = 'gris' | 'vert' | 'ambre' | 'rouge' | 'bleu' | 'violet' | 'teal';
+type CouleurBadge = 'gris' | 'vert' | 'ambre' | 'rouge' | 'bleu' | 'teal';
 
 const COULEURS_BADGE: Record<CouleurBadge, string> = {
-  gris: 'bg-slate-100 text-slate-600',
-  vert: 'bg-green-100 text-green-800',
-  ambre: 'bg-amber-100 text-amber-800',
-  rouge: 'bg-red-100 text-red-700',
-  bleu: 'bg-azur-100 text-azur-700',
-  violet: 'bg-violet-100 text-violet-700',
-  teal: 'bg-brand-100 text-brand-700',
+  gris: 'badge badge-gris',
+  vert: 'badge badge-vert',
+  ambre: 'badge badge-ambre',
+  rouge: 'badge badge-rouge',
+  bleu: 'badge badge-bleu',
+  teal: 'badge badge-teal',
 };
 
 export function Badge({ couleur = 'gris', children, className }: { couleur?: CouleurBadge; children: ReactNode; className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap', COULEURS_BADGE[couleur], className)}>
+    <span className={cn(COULEURS_BADGE[couleur], className)}>
       {children}
+    </span>
+  );
+}
+
+/* ----------------------------------- Montant ----------------------------------- */
+
+export function Montant({ valeur, classe, positif }: { valeur: string | number; classe?: string; positif?: boolean }) {
+  return (
+    <span className={cn('montant', positif ? 'montant-positif' : '', classe)}>
+      {valeur}
     </span>
   );
 }
@@ -154,13 +162,13 @@ export function EtatVide({ titre, texte, children }: { titre: string; texte?: st
   );
 }
 
-export function CarteStats({ libelle, valeur, detail, icone }: { libelle: string; valeur: string; detail?: string; icone?: ReactNode }) {
+export function CarteStats({ libelle, valeur, detail, icone, accent }: { libelle: string; valeur: string | number; detail?: string; icone?: ReactNode; accent?: boolean }) {
   return (
-    <div className="carte flex items-center gap-3 p-4">
+    <div className={cn('carte-compacte flex items-center gap-3 p-4', accent && 'carte-accent')}>
       {icone != null && <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">{icone}</div>}
       <div className="min-w-0">
         <p className="truncate text-xs font-medium text-slate-500">{libelle}</p>
-        <p className="cellule-tabulaire font-display truncate text-lg font-bold text-slate-900">{valeur}</p>
+        <p className={cn('cellule-tabulaire font-display truncate text-lg font-bold text-slate-900', accent ? 'text-brand-700' : '')}>{valeur}</p>
         {detail != null && <p className="truncate text-xs text-slate-400">{detail}</p>}
       </div>
     </div>

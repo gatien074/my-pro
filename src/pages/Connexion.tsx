@@ -8,7 +8,6 @@ import { hacherPin } from '../lib/pin';
 import { initiales } from '../lib/helpers';
 import { useSession } from '../store/session';
 import { Alerte, cn } from '../components/ui';
-import GoogleSignIn from '../components/auth/GoogleSignIn';
 
 export default function Connexion() {
   const { settings, enChargement } = useSettings();
@@ -72,13 +71,6 @@ export default function Connexion() {
                     key={u.id}
                     type="button"
                     onClick={() => {
-                      if (u.googleId) {
-                        // Compte lié à Google : connexion directe, sans PIN.
-                        connecter({ id: u.id!, nom: u.nom, role: u.role });
-                        setSaisie('');
-                        setErreur('');
-                        return;
-                      }
                       setIdChoisi(u.id!);
                       setSaisie('');
                       setErreur('');
@@ -95,12 +87,7 @@ export default function Connexion() {
                     <LogIn className="size-5 text-slate-300" />
                   </button>
                 ))}
-                {utilisateurs.length > 0 && (
-                  <div className="mt-6 border-t border-white/10 pt-4">
-                    <p className="text-xs text-white/50 text-center uppercase tracking-wider">ou continuer avec Google</p>
-                    <GoogleSignIn onSucces={() => {}} />
-                  </div>
-                )}
+
               </div>
             )}
           </div>
@@ -129,9 +116,16 @@ export default function Connexion() {
             </div>
             {erreur && <div className="animer-secousse mb-2"><Alerte>{erreur}</Alerte></div>}
 
-            <div className="mx-auto mt-4 grid max-w-xs grid-cols-3 gap-2.5">
+            <div className="mx-auto mt-4 grid max-w-xs grid-cols-3 gap-3">
               {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((c) => (
-                <button key={c} type="button" onClick={() => taper(c)} className="rounded-xl bg-white py-4 text-xl font-bold text-slate-800 transition-colors active:bg-brand-100">
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => taper(c)}
+                  className="rounded-2xl bg-white py-6 text-2xl font-bold text-slate-800 transition-colors active:bg-brand-100 active:scale-95 touch-manipulation"
+                  onTouchStart={(e) => e.currentTarget.classList.add('bg-brand-100')}
+                  onTouchEnd={(e) => e.currentTarget.classList.remove('bg-brand-100')}
+                >
                   {c}
                 </button>
               ))}
@@ -142,17 +136,17 @@ export default function Connexion() {
                   setErreur('');
                   setIdChoisi(null);
                 }}
-                className="rounded-xl py-4 text-sm font-semibold text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-2xl py-6 text-sm font-semibold text-white/60 transition-colors hover:bg-white/10 hover:text-white active:bg-white/20 touch-manipulation"
               >
                 Retour
               </button>
-              <button type="button" onClick={() => taper('0')} className="rounded-xl bg-white py-4 text-xl font-bold text-slate-800 transition-colors active:bg-brand-100">
+              <button type="button" onClick={() => taper('0')} className="rounded-2xl bg-white py-6 text-2xl font-bold text-slate-800 transition-colors active:bg-brand-100 active:scale-95 touch-manipulation">
                 0
               </button>
               <button
                 type="button"
                 onClick={() => setSaisie((s) => s.slice(0, -1))}
-                className="rounded-xl py-4 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-2xl py-6 text-white/60 transition-colors hover:bg-white/10 hover:text-white active:bg-white/20 touch-manipulation"
                 aria-label="Effacer"
               >
                 <Delete className="mx-auto size-5" />

@@ -5,9 +5,9 @@ import { ChevronRight, Plus, Search } from 'lucide-react';
 import { db } from '../db/db';
 import { enregistrerClient } from '../db/ops';
 import { resteDette, statutVisible } from '../lib/calc';
-import { formatFCFA } from '../lib/money';
+import { formatNombre } from '../lib/money';
 import { initiales } from '../lib/helpers';
-import { Alerte, Bouton, Champ, EtatVide, Libelle, Modale, ZoneTexte } from '../components/ui';
+import { Alerte, Bouton, Champ, EtatVide, Libelle, Modale, Montant, ZoneTexte } from '../components/ui';
 
 export default function Clients() {
   const clients = useLiveQuery(() => db.customers.toArray(), []);
@@ -95,7 +95,9 @@ export default function Clients() {
                     </span>
                     {acc && acc.total > 0 ? (
                       <span className="text-right">
-                        <span className="cellule-tabulaire block text-sm font-bold text-red-600">{formatFCFA(acc.total)}</span>
+                        <span className="cellule-tabulaire block text-sm font-bold text-red-600">
+                          <Montant valeur={formatNombre(acc.total)} />
+                        </span>
                         <span className="text-xs text-slate-400">{acc.retards > 0 ? `${acc.retards} dette(s) en retard` : 'en cours'}</span>
                       </span>
                     ) : (

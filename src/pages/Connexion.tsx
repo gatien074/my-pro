@@ -8,6 +8,7 @@ import { hacherPin } from '../lib/pin';
 import { initiales } from '../lib/helpers';
 import { useSession } from '../store/session';
 import { Alerte, cn } from '../components/ui';
+import GoogleSignIn from '../components/auth/GoogleSignIn';
 
 export default function Connexion() {
   const { settings, enChargement } = useSettings();
@@ -71,6 +72,13 @@ export default function Connexion() {
                     key={u.id}
                     type="button"
                     onClick={() => {
+                      if (u.googleId) {
+                        // Compte lié à Google : connexion directe, sans PIN.
+                        connecter({ id: u.id!, nom: u.nom, role: u.role });
+                        setSaisie('');
+                        setErreur('');
+                        return;
+                      }
                       setIdChoisi(u.id!);
                       setSaisie('');
                       setErreur('');
@@ -87,6 +95,12 @@ export default function Connexion() {
                     <LogIn className="size-5 text-slate-300" />
                   </button>
                 ))}
+                {utilisateurs.length > 0 && (
+                  <div className="mt-6 border-t border-white/10 pt-4">
+                    <p className="text-xs text-white/50 text-center uppercase tracking-wider">ou continuer avec Google</p>
+                    <GoogleSignIn onSucces={() => {}} />
+                  </div>
+                )}
               </div>
             )}
           </div>

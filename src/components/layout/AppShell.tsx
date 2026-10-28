@@ -113,7 +113,7 @@ export function AppShell() {
             </button>
           </header>
 
-          <main className="min-h-0 flex-1 overflow-y-auto pb-20 lg:pb-0">
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-24 lg:pb-0">
             <Outlet />
           </main>
 

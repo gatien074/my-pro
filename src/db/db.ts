@@ -37,14 +37,43 @@ export class BdCaisse extends Dexie {
       debts: '++id, clientId, statut, echeance, venteId',
       debtPayments: '++id, detteId, date',
     });
-    // v2 : clôtures de caisse (ajout de table, données existantes conservées)
-    this.version(2).stores({
-      cashClosures: '++id, date, ',
-    });
+    // v2 : clôtures de caisse
+    this.version(2)
+      .stores({
+        settings: 'id',
+        users: '++id, nom, role',
+        categories: '++id, nom',
+        products: '++id, nom, categoryId, codeBarres',
+        sales: '++id, numero, date, clientId, statut',
+        stockMovements: '++id, produitId, type, date',
+        customers: '++id, nom, telephone',
+        debts: '++id, clientId, statut, echeance, venteId',
+        debtPayments: '++id, detteId, date',
+        cashClosures: '++id, date',
+      })
+      .upgrade((tx) => {
+        // Migration vide si nécessaire
+      });
   }
 }
 
 export const db = new BdCaisse();
+
+// Gérer les erreurs de schéma/DB en mode dev
+db.on('blocked', () => {
+  console.warn('Base de données bloquée par une autre fenêtre');
+});
+
+db.open().catch((err) => {
+  console.error('Erreur ouverture DB:', err);
+  // Tentative de réinitialisation si erreur de schéma
+  if (err.name === 'UpgradeError' || err.name === 'SchemaError' || err.name === 'VersionError') {
+    console.warn('Tentative de suppression et recréation de la base...');
+    db.delete()
+      .then(() => db.open())
+      .catch((e) => console.error('Échec recréation DB:', e));
+  }
+});
 
 /** Tables core de l'application (utilisées pour les transactions globales). */
 export const TOUTES_TABLES = [

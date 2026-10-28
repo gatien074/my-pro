@@ -413,6 +413,19 @@ export async function redefinirPin(userId: number, pin: string): Promise<void> {
   await db.users.update(userId, { pinHash });
 }
 
+export async function supprimerUtilisateur(userId: number): Promise<void> {
+  const cible = await db.users.get(userId);
+  if (!cible) throw new Error('Utilisateur introuvable.');
+  if (cible.role === 'gerant' && cible.actif) {
+    const actifs = await db.users.where('role').equals('gerant').toArray();
+    const autres = actifs.filter((u) => u.id !== userId && u.actif);
+    if (autres.length === 0) {
+      throw new Error('Il doit rester au moins un gérant actif.');
+    }
+  }
+  await db.users.delete(userId);
+}
+
 export async function majUtilisateur(userId: number, modifs: Partial<Omit<User, 'id' | 'pinHash'>>): Promise<void> {
   if (modifs.actif === false || (modifs.role && modifs.role !== 'gerant')) {
     const actifs = await db.users.where('role').equals('gerant').toArray();

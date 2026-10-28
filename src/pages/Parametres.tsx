@@ -10,6 +10,7 @@ import {
   majUtilisateur,
   redefinirPin,
   supprimerCategorie,
+  supprimerUtilisateur,
 } from '../db/ops';
 import { semerDonneesDemo } from '../db/seed';
 import {
@@ -253,18 +254,30 @@ export default function Parametres() {
                 <span className="font-medium text-slate-800">{u.nom}</span>
                 {u.role === 'gerant' && <Badge couleur="teal" className="ml-2">Gérant</Badge>}
                 {u.role === 'caissier' && <Badge couleur="gris" className="ml-2">Caissier</Badge>}
+                <Badge couleur={u.actif ? 'vert' : 'rouge'} className="ml-2">{u.actif ? 'Actif' : 'Désactivé'}</Badge>
               </span>
-              <Badge couleur={u.actif ? 'vert' : 'rouge'}>{u.actif ? 'Actif' : 'Désactivé'}</Badge>
-              <button type="button" onClick={() => { setPinUser(u.id!); setNouveauPin(''); setErreurUser(''); }} className="rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50">
-                Modifier le PIN
-              </button>
-              <button
-                type="button"
-                onClick={() => void basculerActif(u.id!, !u.actif)}
-                className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
-              >
-                {u.actif ? 'Désactiver' : 'Activer'}
-              </button>
+              <div className="flex flex-wrap items-center gap-1">
+                <Bouton taille="sm" variante="secondaire" onClick={() => { setPinUser(u.id!); setNouveauPin(''); setErreurUser(''); }}>
+                  Modifier le PIN
+                </Bouton>
+                <Bouton taille="sm" variante="secondaire" onClick={() => void basculerActif(u.id!, !u.actif)}>
+                  {u.actif ? 'Désactiver' : 'Activer'}
+                </Bouton>
+                <Bouton
+                  taille="sm"
+                  variante="danger"
+                  onClick={async () => {
+                    if (!confirm(`Supprimer définitivement l'utilisateur ${u.nom} ?`)) return;
+                    try {
+                      await supprimerUtilisateur(u.id!);
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : 'Erreur');
+                    }
+                  }}
+                >
+                  <Trash2 className="size-4" /> Supprimer
+                </Bouton>
+              </div>
             </li>
           ))}
         </ul>

@@ -118,22 +118,30 @@ export function AppShell() {
           </main>
 
           {/* Navigation — mobile */}
-          <nav
-            className="fixed inset-x-0 bottom-0 z-40 grid bg-encre pb-[env(safe-area-inset-bottom)] lg:hidden"
-            style={{ gridTemplateColumns: `repeat(${navAutorisee.length}, minmax(0,1fr))` }}
-          >
-            {navAutorisee.map(({ vers, libelle, icone: Icone }) => (
-              <NavLink key={vers} to={vers} className="group flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium">
-                {({ isActive }) => (
-                  <>
-                    <Icone className={cn('size-5 transition-colors', isActive ? 'text-amber-300' : 'text-white/55 group-hover:text-white/80')} />
-                    <span className={cn('transition-colors', isActive ? 'text-white' : 'text-white/60 group-hover:text-white/80')}>
-                      {libelle}
-                    </span>
-                  </>
-                )}
-              </NavLink>
-            ))}
+          <nav className="fixed inset-x-0 bottom-0 z-40 bg-encre pb-[env(safe-area-inset-bottom)] lg:hidden">
+            <div className="flex w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory">
+              {navAutorisee.map(({ vers, libelle, icone: Icone }) => (
+                <NavLink
+                  key={vers}
+                  to={vers}
+                  className="group flex min-w-19 flex-1 shrink-0 snap-start flex-col items-center justify-center gap-0.5 px-2 py-2 text-[10px] font-medium"
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icone className={cn('size-5 transition-colors', isActive ? 'text-amber-300' : 'text-white/55 group-hover:text-white/80')} />
+                      <span
+                        className={cn(
+                          'whitespace-nowrap transition-colors',
+                          isActive ? 'text-white' : 'text-white/60 group-hover:text-white/80',
+                        )}
+                      >
+                        {libelle}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </div>
           </nav>
         </div>
       </div>

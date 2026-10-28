@@ -39,7 +39,7 @@ export class BdCaisse extends Dexie {
     });
     // v2 : clôtures de caisse (ajout de table, données existantes conservées)
     this.version(2).stores({
-      cashClosures: '++id, date',
+      cashClosures: '++id, date, ',
     });
   }
 }

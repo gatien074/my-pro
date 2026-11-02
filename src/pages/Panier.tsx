@@ -9,7 +9,7 @@ import { calculeTotaux } from '../lib/calc';
 import { formatFCFA, formatNombre, versMontant } from '../lib/money';
 import { usePanier } from '../store/cart';
 import { useSession } from '../store/session';
-import { Alerte, Badge, Bouton, Montant } from '../components/ui';
+import { Alerte, Bouton, Montant } from '../components/ui';
 import PaymentDialog, { type BrouillonVente } from '../components/caisse/PaymentDialog';
 import Ticket from '../components/caisse/Ticket';
 

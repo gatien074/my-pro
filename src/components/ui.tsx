@@ -1,5 +1,6 @@
 import { useEffect, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
-import { X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
+import { useToasts, type TypeToast } from '../store/toast';
 
 export function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(' ');
@@ -224,6 +225,56 @@ export function Alerte({ children, type = 'erreur' }: { children: ReactNode; typ
   return (
     <div className={cn('rounded-lg border px-4 py-3 text-sm', type === 'erreur' ? 'border-red-200 bg-red-50 text-red-700' : 'border-azur-200 bg-azur-50 text-azur-700')}>
       {children}
+    </div>
+  );
+}
+
+/* ------------------------------ Messages push ------------------------------ */
+
+const STYLE_TOAST: Record<
+  TypeToast,
+  { icone: typeof AlertTriangle; conteneur: string; iconeCouleur: string }
+> = {
+  alerte: { icone: AlertTriangle, conteneur: 'border-amber-200 bg-amber-50 text-amber-800', iconeCouleur: 'text-amber-600' },
+  erreur: { icone: AlertTriangle, conteneur: 'border-red-200 bg-red-50 text-red-700', iconeCouleur: 'text-red-600' },
+  succes: { icone: CheckCircle2, conteneur: 'border-brand-200 bg-brand-50 text-brand-800', iconeCouleur: 'text-brand-600' },
+  info: { icone: Info, conteneur: 'border-azur-200 bg-azur-50 text-azur-800', iconeCouleur: 'text-azur-600' },
+};
+
+export function ZoneToast() {
+  const messages = useToasts((s) => s.messages);
+  const retirer = useToasts((s) => s.retirer);
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-[90] flex flex-col items-center gap-2 px-3" aria-live="polite" role="region">
+      {messages.map((m) => {
+        const style = STYLE_TOAST[m.type];
+        const Icone = style.icone;
+        return (
+          <div
+            key={m.id}
+            role="status"
+            className={cn(
+              'animer-toast pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border px-4 py-3 shadow-lg ring-1 ring-encre/10',
+              style.conteneur,
+            )}
+          >
+            <Icone className={cn('mt-0.5 size-5 shrink-0', style.iconeCouleur)} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">{m.titre}</p>
+              {m.texte && <p className="mt-0.5 text-xs text-slate-600">{m.texte}</p>}
+            </div>
+            <button
+              type="button"
+              onClick={() => retirer(m.id)}
+              className="rounded-md p-1 text-slate-400 transition-colors hover:bg-white/70 hover:text-slate-600"
+              aria-label="Fermer la notification"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

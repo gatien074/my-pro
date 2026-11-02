@@ -6,6 +6,7 @@ import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import type { Produit } from '../db/types';
 import { formatNombre } from '../lib/money';
+import { jouerAlerteStock } from '../lib/son';
 import { usePanier } from '../store/cart';
 import { Badge, cn, EtatVide, Montant } from '../components/ui';
 
@@ -46,7 +47,11 @@ export default function Caisse() {
     const cible = exact ?? produitsAffiches[0];
     if (cible) {
       const doitBloquer = !(settings?.autoriserStockNegatif ?? false) && cible.stock <= 0;
-      if (doitBloquer) return;
+      if (doitBloquer) {
+        setErreur(`« ${cible.nom} » est en rupture de stock.`);
+        jouerAlerteStock();
+        return;
+      }
       panier.ajouter(cible);
       setNotification({ nom: cible.nom });
       setTimeout(() => setNotification(null), 1500);
@@ -59,7 +64,11 @@ export default function Caisse() {
 
   function ajouterProduit(p: Produit) {
     const doitBloquer = !(settings?.autoriserStockNegatif ?? false) && p.stock <= 0;
-    if (doitBloquer) return;
+    if (doitBloquer) {
+      setErreur(`« ${p.nom} » est en rupture de stock.`);
+      jouerAlerteStock();
+      return;
+    }
     panier.ajouter(p);
     setNotification({ nom: p.nom });
     setTimeout(() => setNotification(null), 1500);
@@ -143,8 +152,8 @@ export default function Caisse() {
                     key={p.id}
                     type="button"
                     onClick={() => ajouterProduit(p)}
-                    disabled={doitBloquer}
-                    className="etiquette relative"
+                    aria-disabled={doitBloquer}
+                    className={cn('etiquette relative', doitBloquer && 'opacity-70 ring-1 ring-red-200')}
                   >
                     <span className="line-clamp-2 text-sm font-semibold text-slate-800">{p.nom}</span>
                     <span className="cellule-tabulaire text-base font-bold text-brand-700">

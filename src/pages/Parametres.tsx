@@ -31,6 +31,7 @@ export default function Parametres() {
   const categories = useLiveQuery(() => db.categories.toArray(), []);
   const produits = useLiveQuery(() => db.products.toArray(), []);
   const deconnecter = useSession((s) => s.deconnecter);
+  const utilisateur = useSession((s) => s.utilisateur);
 
   /* ------ Boutique ------ */
   const [formBoutique, setFormBoutique] = useState(() => ({
@@ -76,7 +77,12 @@ export default function Parametres() {
     try {
       if (!formUser.nom.trim()) throw new Error('Le nom est obligatoire.');
       if (!pinValide(formUser.pin)) throw new Error('Le PIN doit contenir 4 chiffres.');
-      await creerUtilisateur({ nom: formUser.nom, role: formUser.role, pin: formUser.pin });
+      await creerUtilisateur({
+        nom: formUser.nom,
+        role: formUser.role,
+        pin: formUser.pin,
+        gerantId: formUser.role === 'caissier' ? utilisateur?.id : undefined,
+      });
       setFormUser({ ouverte: false, nom: '', role: 'caissier', pin: '' });
     } catch (err) {
       setErreurUser(err instanceof Error ? err.message : 'Erreur inattendue.');
@@ -259,12 +265,17 @@ export default function Parametres() {
         </div>
         {erreurUser && <div className="mb-2"><Alerte>{erreurUser}</Alerte></div>}
         <ul className="divide-y divide-slate-100 text-sm">
-          {(utilisateurs ?? []).map((u) => (
+          {(utilisateurs ?? []).map((u) => {
+            const gerantLie = u.gerantId ? (utilisateurs ?? []).find((g) => g.id === u.gerantId) : undefined;
+            return (
             <li key={u.id} className="flex flex-wrap items-center gap-2 py-2.5">
               <span className="min-w-0 flex-1">
                 <span className="font-medium text-slate-800">{u.nom}</span>
                 {u.role === 'gerant' && <Badge couleur="teal" className="ml-2">Gérant</Badge>}
                 {u.role === 'caissier' && <Badge couleur="gris" className="ml-2">Caissier</Badge>}
+                {u.role === 'caissier' && gerantLie && (
+                  <Badge couleur="bleu" className="ml-2">Lié à {gerantLie.nom}</Badge>
+                )}
                 <Badge couleur={u.actif ? 'vert' : 'rouge'} className="ml-2">{u.actif ? 'Actif' : 'Désactivé'}</Badge>
               </span>
               <div className="flex flex-wrap items-center gap-1">
@@ -290,7 +301,8 @@ export default function Parametres() {
                 </Bouton>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </section>
 

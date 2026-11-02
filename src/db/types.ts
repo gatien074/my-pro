@@ -31,6 +31,10 @@ export interface User {
   role: Role;
   pinHash: string;
   actif: boolean;
+  /** Identifiant de la boutique ('app' par défaut, une boutique par installation). */
+  boutiqueId?: string;
+  /** Pour un caissier : gérant auquel ce compte est rattaché. */
+  gerantId?: number;
 }
 
 export interface Category {

@@ -11,7 +11,7 @@ import type {
 } from './types';
 import { calculeTotaux } from '../lib/calc';
 import { debutAnnee, finDeJour } from '../lib/dates';
-import { hacherPin } from '../lib/pin';
+import { hacherPin, pinValide } from '../lib/pin';
 
 /* ---------------------------------- Settings --------------------------------- */
 
@@ -27,6 +27,7 @@ export interface DonneesCreationBoutique {
   nomBoutique: string;
   nomGerant: string;
   pin: string;
+  caissier?: { nom: string; pin: string };
 }
 
 /** Crée la configuration et le compte gérant (première utilisation). */
@@ -44,9 +45,25 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
     modeDemo: false,
     creeLe: Date.now(),
   };
-  const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true };
+  const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true, boutiqueId: 'app' };
   const id = await db.users.add(user);
   await db.settings.put(settings);
+
+  // Caissier créé en même temps que la boutique (facultatif, modifiable ensuite dans Paramètres).
+  const nomCaissier = d.caissier?.nom.trim() ?? '';
+  if (nomCaissier) {
+    if (!pinValide(d.caissier!.pin)) throw new Error('Le PIN du caissier doit contenir 4 chiffres.');
+    const pinCaissier = await hacherPin(d.caissier!.pin);
+    await db.users.add({
+      nom: nomCaissier,
+      role: 'caissier',
+      pinHash: pinCaissier,
+      actif: true,
+      boutiqueId: 'app',
+      gerantId: id,
+    });
+  }
+
   return id;
 }
 
@@ -402,11 +419,18 @@ export async function creerDetteManuelle(input: { clientId: number; montant: num
 
 /* ---------------------------------- Utilisateurs ---------------------------------- */
 
-export async function creerUtilisateur(input: { nom: string; role: User['role']; pin: string }): Promise<number> {
+export async function creerUtilisateur(input: { nom: string; role: User['role']; pin: string; gerantId?: number; boutiqueId?: string }): Promise<number> {
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom est obligatoire.');
   const pinHash = await hacherPin(input.pin);
-  return db.users.add({ nom, role: input.role, pinHash, actif: true });
+  return db.users.add({
+    nom,
+    role: input.role,
+    pinHash,
+    actif: true,
+    boutiqueId: input.boutiqueId ?? 'app',
+    gerantId: input.gerantId,
+  });
 }
 
 export async function redefinirPin(userId: number, pin: string): Promise<void> {

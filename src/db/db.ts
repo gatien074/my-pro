@@ -63,10 +63,12 @@ db.on('blocked', () => {
 db.open().catch((err) => {
   console.error('Erreur ouverture DB:', err);
   // Tentative de réinitialisation si erreur de schéma
-  if (err.name === 'UpgradeError' || err.name === 'SchemaError' || err.name === 'VersionError') {
+  if (err.name === 'UpgradeError' || err.name === 'SchemaError' || err.name === 'VersionError' || err.name === 'DexieError') {
     console.warn('Tentative de suppression et recréation de la base...');
     db.delete()
-      .then(() => db.open())
+      .then(() => {
+        window.location.reload();
+      })
       .catch((e) => console.error('Échec recréation DB:', e));
   }
 });

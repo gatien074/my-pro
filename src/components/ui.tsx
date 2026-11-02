@@ -181,10 +181,10 @@ export function Chargement({ texte = 'Chargement…' }: { texte?: string }) {
       <div className="flex size-24 items-center justify-center rounded-3xl bg-white ring-1 ring-encre/10">
         <img src="/icon.svg" alt="Logo Caisse & Stock" className="size-16 rounded-2xl" />
       </div>
-      <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
-        <span className="size-2 animate-ping rounded-full bg-brand-500" />
-        <span className="size-2 animate-ping rounded-full bg-brand-500 [animation-delay:150ms]" />
-        <span className="size-2 animate-ping rounded-full bg-brand-500 [animation-delay:300ms]" />
+      <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+        <span className="size-1.5 animate-ping rounded-full bg-brand-500" />
+        <span className="size-1.5 animate-ping rounded-full bg-brand-500 [animation-delay:150ms]" />
+        <span className="size-1.5 animate-ping rounded-full bg-brand-500 [animation-delay:300ms]" />
         {texte}
       </div>
     </div>

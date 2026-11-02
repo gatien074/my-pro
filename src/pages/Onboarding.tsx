@@ -17,6 +17,8 @@ export default function Onboarding() {
   const [nomGerant, setNomGerant] = useState('');
   const [pin, setPin] = useState('');
   const [pin2, setPin2] = useState('');
+  const [nomCaissier, setNomCaissier] = useState('');
+  const [pinCaissier, setPinCaissier] = useState('');
   const [avecDemo, setAvecDemo] = useState(true);
   const [erreur, setErreur] = useState('');
   const [enCours, setEnCours] = useState(false);
@@ -31,10 +33,14 @@ export default function Onboarding() {
     if (!nomGerant.trim()) return setErreur('Indiquez votre nom (gérant).');
     if (!pinValide(pin)) return setErreur('Le code PIN doit contenir exactement 4 chiffres.');
     if (pin !== pin2) return setErreur('Les deux codes PIN ne correspondent pas.');
+    if (nomCaissier.trim() && !pinValide(pinCaissier)) {
+      return setErreur('Le code PIN du caissier doit contenir exactement 4 chiffres.');
+    }
 
     setEnCours(true);
     try {
-      const id = await creerBoutique({ nomBoutique: nomBoutique.trim(), nomGerant: nomGerant.trim(), pin: pin });
+      const caissier = nomCaissier.trim() ? { nom: nomCaissier.trim(), pin: pinCaissier } : undefined;
+      const id = await creerBoutique({ nomBoutique: nomBoutique.trim(), nomGerant: nomGerant.trim(), pin: pin, caissier });
       if (avecDemo) {
         try {
           await semerDonneesDemo();
@@ -98,6 +104,33 @@ export default function Onboarding() {
                   onChange={(e) => setPin2(e.target.value)}
                   placeholder="••••"
                 />
+              </div>
+            </div>
+
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Compte caissier (facultatif)</p>
+                <p className="text-xs text-slate-500">
+                  Créez-le maintenant, ou plus tard dans Paramètres → Utilisateurs. Il reste rattaché à votre compte de gérant.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <Libelle>Nom du caissier / de la caissière</Libelle>
+                  <Champ value={nomCaissier} onChange={(e) => setNomCaissier(e.target.value)} placeholder="Ex. Reine Mbeng" />
+                </div>
+                <div>
+                  <Libelle>Code PIN caissier</Libelle>
+                  <Champ
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    autoComplete="off"
+                    value={pinCaissier}
+                    onChange={(e) => setPinCaissier(e.target.value)}
+                    placeholder="••••"
+                  />
+                </div>
               </div>
             </div>
 

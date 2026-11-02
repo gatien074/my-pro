@@ -79,7 +79,7 @@ export async function semerDonneesDemo(): Promise<void> {
 
   await db.transaction('rw', [...TOUTES_TABLES], async () => {
     if (!reineId) {
-      reineId = await db.users.add({ nom: NOM_CAISSIERE, role: 'caissier', pinHash: pinReine, actif: true });
+      reineId = await db.users.add({ nom: NOM_CAISSIERE, role: 'caissier', pinHash: pinReine, actif: true, boutiqueId: 'app', gerantId });
     }
 
     await db.categories.clear();

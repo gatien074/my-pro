@@ -26,7 +26,7 @@ export default function Caisse() {
   const [recherche, setRecherche] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [erreur, setErreur] = useState('');
-  const [notification, setNotification] = useState<{ nom: string; id: number } | null>(null);
+  const [notification, setNotification] = useState<{ nom: string } | null>(null);
 
   const produitsAffiches = useMemo(() => {
     const actifs = (produits ?? []).filter((p) => p.actif);
@@ -38,7 +38,6 @@ export default function Caisse() {
     });
   }, [produits, recherche, categoryId]);
 
-  // Détection code-barres exact (touche Entrée)
   function onRecherche(e: ReactKeyboardEvent<HTMLInputElement>) {
     if (e.key !== 'Enter') return;
     const q = recherche.trim();
@@ -49,7 +48,7 @@ export default function Caisse() {
       const doitBloquer = !(settings?.autoriserStockNegatif ?? false) && cible.stock <= 0;
       if (doitBloquer) return;
       panier.ajouter(cible);
-      setNotification({ nom: cible.nom, id: Date.now() });
+      setNotification({ nom: cible.nom });
       setTimeout(() => setNotification(null), 1500);
       setRecherche('');
       setErreur('');
@@ -62,7 +61,7 @@ export default function Caisse() {
     const doitBloquer = !(settings?.autoriserStockNegatif ?? false) && p.stock <= 0;
     if (doitBloquer) return;
     panier.ajouter(p);
-    setNotification({ nom: p.nom, id: Date.now() });
+    setNotification({ nom: p.nom });
     setTimeout(() => setNotification(null), 1500);
     setErreur('');
   }
@@ -71,7 +70,6 @@ export default function Caisse() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* En-tête avec accès panier */}
       <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2.5 lg:px-4">
         <h1 className="text-lg font-bold text-slate-900">Caisse</h1>
         <button
@@ -102,6 +100,7 @@ export default function Caisse() {
               autoFocus
             />
           </div>
+          {erreur && <p className="mt-2 text-sm text-red-600">{erreur}</p>}
         </div>
 
         <div className="flex gap-2 overflow-x-auto px-3 pb-2 lg:px-4">
@@ -165,149 +164,14 @@ export default function Caisse() {
         </div>
       </section>
 
-      {/* Notification d'ajout au panier */}
       {notification && (
-        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 lg:bottom-6">
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
             <Check className="size-4" />
             <span className="max-w-[200px] truncate">{notification.nom}</span>
             <span>ajouté au panier</span>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-      {/* Colonne panier */}
-      <aside className="flex max-h-[45vh] min-h-0 shrink-0 flex-col border-t border-slate-200 bg-white lg:max-h-none lg:w-96 lg:rounded-xl lg:border">
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700">
-            <ShoppingCart className="size-4" />
-            Panier ({lignes.reduce((s, l) => s + l.quantite, 0)})
-          </h2>
-          {lignes.length > 0 && (
-            <button type="button" onClick={() => { panier.vider(); panier.definirRemise(0); }} className="text-xs font-medium text-red-600 hover:underline">
-              Vider
-            </button>
-          )}
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {lignes.length === 0 ? (
-            <p className="flex h-full items-center justify-center px-6 py-8 text-center text-sm text-slate-400">
-              Touchez un produit pour commencer une vente.
-            </p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {lignes.map((l) => (
-                <li key={l.produitId} className="flex items-center gap-2 px-4 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-700">{l.nom}</p>
-                    <p className="cellule-tabulaire text-xs text-slate-400">{formatNombre(l.prixUnitaire)} × {l.quantite}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => panier.decrementer(l.produitId)} className="flex size-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100 touch-manipulation" aria-label="Diminuer">
-                      <Minus className="size-5" />
-                    </button>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      value={l.quantite}
-                      onChange={(e) => panier.definirQuantite(l.produitId, versMontant(e.target.value))}
-                      aria-label={`Quantité de ${l.nom}`}
-                      className="cellule-tabulaire w-16 rounded-lg border border-slate-200 bg-white py-2 text-center text-base font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 touch-manipulation"
-                    />
-                    <button type="button" onClick={() => { const p = (produits ?? []).find((x) => x.id === l.produitId); if (p) panier.ajouter(p); }} className="flex size-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 active:bg-slate-100 touch-manipulation" aria-label="Augmenter">
-                      <Plus className="size-5" />
-                    </button>
-                  </div>
-                  <span className="cellule-tabulaire w-20 text-right text-sm font-bold text-slate-800">
-                    <Montant valeur={formatNombre(l.prixUnitaire * l.quantite)} />
-                  </span>
-                  <button type="button" onClick={() => { const p = (produits ?? []).find((x) => x.id === l.produitId); if (p) retirer(p); }} className="text-slate-300 hover:text-red-600" aria-label="Retirer">
-                    <Trash2 className="size-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="space-y-2 border-t border-slate-100 px-4 py-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Remise (FCFA)</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              className="champ w-28 px-2 py-1 text-right text-sm"
-              value={panier.remise || ''}
-              onChange={(e) => panier.definirRemise(e.target.valueAsNumber ? e.target.valueAsNumber : 0)}
-              min={0}
-            />
-          </div>
-          {panier.remise > 0 && (
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span>Sous-total</span>
-              <span className="cellule-tabulaire">
-                <Montant valeur={formatNombre(sousTotal)} />
-              </span>
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-700">Total</span>
-            <span className="cellule-tabulaire font-display text-2xl font-bold text-brand-700">
-              <Montant valeur={formatNombre(total)} />
-            </span>
-          </div>
-          {bloquerStock && lignesAlerte.length > 0 && (
-            <Alerte type="erreur">
-              Stock insuffisant : {lignesAlerte.map((l) => l.nom).join(', ')}.
-            </Alerte>
-          )}
-          {erreur && <Alerte>{erreur}</Alerte>}
-          <Bouton
-            taille="lg"
-            className="w-full"
-            disabled={
-              lignes.length === 0 ||
-              lignesInvalides.length > 0 ||
-              (bloquerStock && lignesAlerte.length > 0)
-            }
-            onClick={() => {
-              if (lignesInvalides.length > 0) {
-                setErreur(
-                  'Certains articles du panier ne sont plus disponibles (produit archivé ou supprimé).',
-                );
-                return;
-              }
-              setErreur('');
-              setPaiementOuvert(true);
-            }}
-          >
-            Encaisser {formatFCFA(total)}
-          </Bouton>
-        </div>
-      </aside>
-
-      {brouillon && paiementOuvert && utilisateur && (
-        <PaymentDialog
-          brouillon={brouillon}
-          vendeurId={utilisateur.id}
-          onFermer={() => setPaiementOuvert(false)}
-          onTermine={surVenteTerminee}
-        />
-      )}
-
-      {venteFaite && settings && (
-        <Ticket
-          vente={venteFaite}
-          settings={settings}
-          resolveClient={(id) => db.customers.get(id).then((c) => c?.nom)}
-          annulateurId={utilisateur?.id}
-          onFermer={() => setVenteFaite(null)}
-        />
       )}
     </div>
   );

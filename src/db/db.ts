@@ -38,22 +38,18 @@ export class BdCaisse extends Dexie {
       debtPayments: '++id, detteId, date',
     });
     // v2 : clôtures de caisse
-    this.version(2)
-      .stores({
-        settings: 'id',
-        users: '++id, nom, role',
-        categories: '++id, nom',
-        products: '++id, nom, categoryId, codeBarres',
-        sales: '++id, numero, date, clientId, statut',
-        stockMovements: '++id, produitId, type, date',
-        customers: '++id, nom, telephone',
-        debts: '++id, clientId, statut, echeance, venteId',
-        debtPayments: '++id, detteId, date',
-        cashClosures: '++id, date',
-      })
-      .upgrade((tx) => {
-        // Migration vide si nécessaire
-      });
+    this.version(2).stores({
+      settings: 'id',
+      users: '++id, nom, role',
+      categories: '++id, nom',
+      products: '++id, nom, categoryId, codeBarres',
+      sales: '++id, numero, date, clientId, statut',
+      stockMovements: '++id, produitId, type, date',
+      customers: '++id, nom, telephone',
+      debts: '++id, clientId, statut, echeance, venteId',
+      debtPayments: '++id, detteId, date',
+      cashClosures: '++id, date',
+    });
   }
 }
 

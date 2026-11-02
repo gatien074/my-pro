@@ -40,6 +40,7 @@ export default function Parametres() {
     piedTicket: settings?.piedTicket ?? '',
     seuilAlerteDefaut: String(settings?.seuilAlerteDefaut ?? 5),
     autoriserStockNegatif: settings?.autoriserStockNegatif ?? false,
+    verrouillageAuto: settings?.verrouillageAuto ?? true,
   }));
   const [msgBoutique, setMsgBoutique] = useState('');
 
@@ -57,6 +58,7 @@ export default function Parametres() {
       piedTicket: formBoutique.piedTicket.trim(),
       seuilAlerteDefaut: Number(formBoutique.seuilAlerteDefaut || 5),
       autoriserStockNegatif: formBoutique.autoriserStockNegatif,
+      verrouillageAuto: formBoutique.verrouillageAuto,
     });
     setMsgBoutique('Paramètres enregistrés.');
     setTimeout(() => setMsgBoutique(''), 3000);
@@ -231,6 +233,15 @@ export default function Parametres() {
               </span>
             </label>
           </div>
+          <label className="flex items-start gap-2.5 rounded-xl bg-slate-50 p-3">
+            <input type="checkbox" checked={formBoutique.verrouillageAuto} onChange={(e) => setFormBoutique((f) => ({ ...f, verrouillageAuto: e.target.checked }))} className="mt-0.5 size-4 accent-teal-600" />
+            <span className="text-sm text-slate-600">
+              Verrouiller l'application quand personne n'est connecté
+              <span className="block text-xs text-slate-400">
+                Dès que la session est vide, demander le code PIN avant d'afficher la caisse.
+              </span>
+            </span>
+          </label>
           {msgBoutique && <Alerte type="info">{msgBoutique}</Alerte>}
           <Bouton type="submit">Enregistrer</Bouton>
         </form>

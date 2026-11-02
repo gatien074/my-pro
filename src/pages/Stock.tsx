@@ -1,12 +1,13 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowDownLeft, ClipboardCheck, Layers, TriangleAlert } from 'lucide-react';
+import { ArrowDownLeft, ClipboardCheck, Layers, TriangleAlert, Volume2 } from 'lucide-react';
 import { db } from '../db/db';
 import { enregistrerMouvementStock } from '../db/ops';
 import type { Produit } from '../db/types';
 import { formaterDateHeure } from '../lib/dates';
 import { formatNombre, versMontant } from '../lib/money';
 import { LIBELLES_MOUVEMENTS } from '../lib/helpers';
+import { jouerAlerteStock } from '../lib/son';
 import { useSession } from '../store/session';
 import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale, Montant } from '../components/ui';
 
@@ -129,7 +130,14 @@ export default function Stock() {
       </div>
 
       <div className="carte p-4">
-        <h2 className="mb-2 text-sm font-bold text-slate-700">Alertes de rupture</h2>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-slate-700">Alertes de rupture</h2>
+          {enAlerte.some((p) => p.stock <= 0) && (
+            <Bouton taille="sm" variante="secondaire" onClick={() => jouerAlerteStock()}>
+              <Volume2 className="size-4" /> Tester l'alarme
+            </Bouton>
+          )}
+        </div>
         {enAlerte.length === 0 ? (
           <p className="text-sm text-slate-400">Aucun produit sous le seuil d'alerte. Tout va bien !</p>
         ) : (

@@ -1,12 +1,14 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, Users } from 'lucide-react';
+import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, ShoppingBag, Users } from 'lucide-react';
 import { useSettings } from '../../db/hooks';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
 import { Chargement, cn } from '../ui';
+import { usePanier } from '../../store/cart';
 
 const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingCart; roles: Role[] }> = [
   { vers: '/', libelle: 'Caisse', icone: ShoppingCart, roles: ['gerant', 'caissier'] },
+  { vers: '/panier', libelle: 'Panier', icone: ShoppingBag, roles: ['gerant', 'caissier'] },
   { vers: '/produits', libelle: 'Produits', icone: Package, roles: ['gerant', 'caissier'] },
   { vers: '/stock', libelle: 'Stock', icone: Boxes, roles: ['gerant'] },
   { vers: '/clients', libelle: 'Clients', icone: Users, roles: ['gerant', 'caissier'] },
@@ -20,6 +22,8 @@ export function AppShell() {
   const utilisateur = useSession((s) => s.utilisateur);
   const deconnecter = useSession((s) => s.deconnecter);
   const location = useLocation();
+  const lignes = usePanier((s) => s.lignes);
+  const nbArticles = lignes.reduce((s, l) => s + l.quantite, 0);
 
   if (enChargement) return <Chargement />;
   if (!settings) return <Navigate to="/onboarding" replace />;
@@ -64,7 +68,14 @@ export function AppShell() {
                     {isActive && (
                       <span className="absolute top-1/2 left-0 h-5 w-1 -translate-y-1/2 rounded-r-full bg-amber-400" />
                     )}
-                    <Icone className={cn('size-5 shrink-0', isActive ? 'text-amber-300' : 'text-white/55')} />
+                    <div className="relative">
+                      <Icone className={cn('size-5 shrink-0', isActive ? 'text-amber-300' : 'text-white/55')} />
+                      {vers === '/panier' && nbArticles > 0 && (
+                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                          {nbArticles > 9 ? '9+' : nbArticles}
+                        </span>
+                      )}
+                    </div>
                     <span className={cn('transition-colors', isActive ? 'text-white' : 'text-white/75 group-hover:text-white')}>
                       {libelle}
                     </span>
@@ -128,7 +139,14 @@ export function AppShell() {
                 >
                   {({ isActive }) => (
                     <>
-                      <Icone className={cn('size-5 transition-colors', isActive ? 'text-amber-300' : 'text-white/55 group-hover:text-white/80')} />
+                      <div className="relative">
+                        <Icone className={cn('size-5 transition-colors', isActive ? 'text-amber-300' : 'text-white/55 group-hover:text-white/80')} />
+                        {vers === '/panier' && nbArticles > 0 && (
+                          <span className="absolute -top-1.5 -right-2 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                            {nbArticles > 9 ? '9+' : nbArticles}
+                          </span>
+                        )}
+                      </div>
                       <span
                         className={cn(
                           'whitespace-nowrap transition-colors',

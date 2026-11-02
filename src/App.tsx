@@ -3,6 +3,7 @@ import { AppShell } from './components/layout/AppShell';
 import Onboarding from './pages/Onboarding';
 import Connexion from './pages/Connexion';
 import Caisse from './pages/Caisse';
+import Panier from './pages/Panier';
 import Produits from './pages/Produits';
 import Stock from './pages/Stock';
 import Clients from './pages/Clients';
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/connexion" element={<Connexion />} />
         <Route element={<AppShell />}>
           <Route path="/" element={<Caisse />} />
+          <Route path="/panier" element={<Panier />} />
           <Route path="/produits" element={<Produits />} />
           <Route path="/stock" element={<Stock />} />
           <Route path="/clients" element={<Clients />} />

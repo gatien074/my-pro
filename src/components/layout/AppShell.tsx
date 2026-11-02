@@ -4,8 +4,9 @@ import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, Sh
 import { useSettings } from '../../db/hooks';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
-import { Chargement, cn, EcranVerrouille } from '../ui';
+import { Chargement, cn, EcranVerrouille, ZoneToast } from '../ui';
 import { usePanier } from '../../store/cart';
+import { useAlerteRuptures } from '../../hooks/useAlerteRuptures';
 
 const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingCart; roles: Role[] }> = [
   { vers: '/', libelle: 'Caisse', icone: ShoppingCart, roles: ['gerant', 'caissier'] },
@@ -27,6 +28,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const lignes = usePanier((s) => s.lignes);
   const nbArticles = lignes.reduce((s, l) => s + l.quantite, 0);
+  useAlerteRuptures();
 
   useEffect(() => {
     const minuteur = setTimeout(() => setDemarragePret(true), 8000);
@@ -58,6 +60,8 @@ export function AppShell() {
     <div className="flex h-dvh flex-col bg-slate-50">
       {/* Bande du drapeau — signature de l'application */}
       <div className="bande-gabon h-1 shrink-0" aria-hidden="true" />
+
+      <ZoneToast />
 
       <div className="flex min-h-0 flex-1">
         {/* Barre latérale — bureau */}

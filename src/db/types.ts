@@ -20,6 +20,7 @@ export interface Settings {
   piedTicket: string;
   seuilAlerteDefaut: number;
   autoriserStockNegatif: boolean;
+  verrouillageAuto?: boolean;
   modeDemo: boolean;
   creeLe: number;
 }

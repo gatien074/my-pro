@@ -1,9 +1,9 @@
-import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, ShoppingBag, Users } from 'lucide-react';
 import { useSettings } from '../../db/hooks';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
-import { Chargement, cn } from '../ui';
+import { Chargement, cn, EcranVerrouille } from '../ui';
 import { usePanier } from '../../store/cart';
 
 const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingCart; roles: Role[] }> = [
@@ -22,12 +22,21 @@ export function AppShell() {
   const utilisateur = useSession((s) => s.utilisateur);
   const deconnecter = useSession((s) => s.deconnecter);
   const location = useLocation();
+  const navigate = useNavigate();
   const lignes = usePanier((s) => s.lignes);
   const nbArticles = lignes.reduce((s, l) => s + l.quantite, 0);
 
   if (enChargement) return <Chargement />;
   if (!settings) return <Navigate to="/onboarding" replace />;
-  if (!utilisateur) return <Navigate to="/connexion" replace />;
+
+  const verrouillageAuto = settings.verrouillageAuto ?? true;
+  if (!utilisateur) {
+    return verrouillageAuto ? (
+      <EcranVerrouille nomBoutique={settings.nomBoutique} onDeverrouiller={() => navigate('/connexion')} />
+    ) : (
+      <Navigate to="/connexion" replace />
+    );
+  }
 
   const autorise = navigation.some(
     (n) =>

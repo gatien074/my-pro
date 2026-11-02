@@ -177,13 +177,45 @@ export function CarteStats({ libelle, valeur, detail, icone, accent }: { libelle
 
 export function Chargement({ texte = 'Chargement…' }: { texte?: string }) {
   return (
-    <div className="flex h-full min-h-[50vh] items-center justify-center" role="status">
+    <div className="flex min-h-[70vh] w-full flex-col items-center justify-center gap-6" role="status" aria-live="polite">
+      <div className="flex size-24 items-center justify-center rounded-3xl bg-white ring-1 ring-encre/10">
+        <img src="/icon.svg" alt="Logo Caisse & Stock" className="size-16 rounded-2xl" />
+      </div>
       <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
         <span className="size-2 animate-ping rounded-full bg-brand-500" />
         <span className="size-2 animate-ping rounded-full bg-brand-500 [animation-delay:150ms]" />
         <span className="size-2 animate-ping rounded-full bg-brand-500 [animation-delay:300ms]" />
         {texte}
       </div>
+    </div>
+  );
+}
+
+/* --------------------------- Écran de verrouillage --------------------------- */
+
+export function EcranVerrouille({
+  nomBoutique,
+  onDeverrouiller,
+}: {
+  nomBoutique?: string;
+  onDeverrouiller: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[100] flex min-h-dvh flex-col items-center justify-center gap-6 bg-encre px-6 pb-24 text-center lg:pb-0">
+      <div className="bande-gabon absolute inset-x-0 top-0 h-1" aria-hidden="true" />
+      <div className="flex size-20 items-center justify-center rounded-3xl bg-brand-600 text-white ring-1 ring-white/15">
+        <img src="/icon.svg" alt="Logo Caisse & Stock" className="size-12 rounded-xl" />
+      </div>
+      <div>
+        {nomBoutique && <p className="font-display text-sm font-bold text-white">{nomBoutique}</p>}
+        <h1 className="font-display text-2xl font-bold text-white">Application verrouillée</h1>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-white/60">
+          Personne n'est connecté. Saisissez votre code PIN pour reprendre la caisse.
+        </p>
+      </div>
+      <Bouton taille="lg" onClick={onDeverrouiller}>
+        Déverrouiller
+      </Bouton>
     </div>
   );
 }

@@ -40,6 +40,7 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
     piedTicket: 'Merci de votre visite !',
     seuilAlerteDefaut: 5,
     autoriserStockNegatif: false,
+    verrouillageAuto: true,
     modeDemo: false,
     creeLe: Date.now(),
   };

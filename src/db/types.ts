@@ -53,6 +53,7 @@ export interface Produit {
   stock: number;
   seuilAlerte: number;
   actif: boolean;
+  imageUrl?: string;
   creeLe: number;
 }
 

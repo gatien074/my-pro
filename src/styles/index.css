@@ -373,6 +373,63 @@
   animation: toast 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* ---------------- Liste produits : grille horizontale ---------------- */
+.liste-produits-h {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc(100% - 1rem);
+  gap: 1rem;
+  padding: 0.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.liste-produits-h::-webkit-scrollbar {
+  display: none;
+}
+
+.carte-produit {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .liste-produits-h {
+    grid-auto-columns: calc(50% - 0.5rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .liste-produits-h {
+    grid-auto-columns: calc(33.333% - 0.667rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .liste-produits-h {
+    grid-auto-columns: calc(25% - 0.75rem);
+  }
+}
+
+@keyframes fleche-defilement {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+}
+
+.animer-fleche-defilement {
+  animation: fleche-defilement 1.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

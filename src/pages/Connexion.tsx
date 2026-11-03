@@ -102,7 +102,7 @@ export default function Connexion() {
             <p className="mt-1 mb-5 text-sm text-white/60">Saisissez votre code PIN</p>
 
             <div className="cellule-tabulaire mb-2 flex justify-center gap-3">
-              {[0, 1, 2, 3, 4, 5, ].map((i) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                 <span
                   key={i}
                   className={cn(

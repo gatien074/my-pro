@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Store } from 'lucide-react';
+import { Store, Upload } from 'lucide-react';
 import { useSettings } from '../db/hooks';
 import { creerBoutique } from '../db/ops';
+import { analyserSauvegarde, lireFichierTexte, restaurerDonnees } from '../db/backup';
 import { pinValide } from '../lib/pin';
 import { useSession } from '../store/session';
 import { Alerte, Bouton, Champ, Libelle, Chargement } from '../components/ui';
@@ -19,7 +20,9 @@ export default function Onboarding() {
   const [nomCaissier, setNomCaissier] = useState('');
   const [pinCaissier, setPinCaissier] = useState('');
   const [erreur, setErreur] = useState('');
+  const [erreurSauvegarde, setErreurSauvegarde] = useState('');
   const [enCours, setEnCours] = useState(false);
+  const inputSauvegardeRef = useRef<HTMLInputElement>(null);
 
   if (enChargement) return <Chargement />;
   if (settings) return <Navigate to="/connexion" replace />;
@@ -44,6 +47,18 @@ export default function Onboarding() {
     } catch (err) {
       setErreur(err instanceof Error ? err.message : 'Erreur inattendue.');
       setEnCours(false);
+    }
+  }
+
+  async function restaurerSauvegarde(file: File) {
+    setErreurSauvegarde('');
+    try {
+      const texte = await lireFichierTexte(file);
+      const sauvegarde = analyserSauvegarde(texte);
+      await restaurerDonnees(sauvegarde);
+      navigate('/connexion', { replace: true });
+    } catch (err) {
+      setErreurSauvegarde(err instanceof Error ? err.message : 'Erreur inattendue.');
     }
   }
 
@@ -132,6 +147,27 @@ export default function Onboarding() {
             {enCours ? 'Création en cours…' : 'Créer ma boutique'}
           </Bouton>
         </form>
+
+        <div className="text-center">
+          <p className="mb-3 text-xs text-white/50">
+            Vous êtes caissier ? Ne créez pas de boutique : demandez au gérant une sauvegarde de la boutique, puis restaurez-la ici.
+          </p>
+          <Bouton variante="secondaire" taille="sm" onClick={() => inputSauvegardeRef.current?.click()}>
+            <Upload className="size-4" /> Restaurer une sauvegarde
+          </Bouton>
+          <input
+            ref={inputSauvegardeRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void restaurerSauvegarde(f);
+              e.target.value = '';
+            }}
+          />
+          {erreurSauvegarde && <div className="mt-3"><Alerte>{erreurSauvegarde}</Alerte></div>}
+        </div>
       </div>
     </div>
   );

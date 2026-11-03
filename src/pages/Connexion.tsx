@@ -61,7 +61,16 @@ export default function Connexion() {
               <ShieldCheck className="size-7" />
             </div>
             <h1 className="font-display text-xl font-bold text-white">{settings.nomBoutique}</h1>
+            <p className="mt-1 text-sm text-white/60">
+              {(() => {
+                const gerant = utilisateurs.find((u) => u.role === 'gerant' && u.actif);
+                return gerant ? `Boutique de ${gerant.nom}` : 'Boutique';
+              })()}
+            </p>
             <p className="mt-1 mb-6 text-sm text-white/60">Qui utilise la caisse ?</p>
+            <p className="mb-6 text-xs text-white/40">
+              Première connexion ? Le gérant crée votre compte et votre code PIN dans Paramètres → Utilisateurs.
+            </p>
             {utilisateurs.length === 0 ? (
               <Alerte>Aucun profil actif. Contactez le gérant.</Alerte>
             ) : (

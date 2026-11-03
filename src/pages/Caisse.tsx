@@ -97,7 +97,7 @@ export default function Caisse() {
       </div>
 
       <section className="flex min-h-0 flex-1 flex-col">
-        <div className="p-3 lg:p-4">
+        <div className="p-3 sm:p-4 lg:p-5">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-slate-400" />
             <input

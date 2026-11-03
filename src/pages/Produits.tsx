@@ -121,8 +121,8 @@ export default function Produits() {
     : null;
 
   return (
-    <div className="space-y-3 p-3 lg:p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 p-3 sm:p-4 lg:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="titre-page">Produits</h1>
         {estGerant && (
           <Bouton onClick={ouvrirNouveau}>
@@ -131,12 +131,12 @@ export default function Produits() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative min-w-56 flex-1">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative w-full sm:min-w-56 sm:flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
           <input className="champ pl-9" placeholder="Rechercher un produit…" value={recherche} onChange={(e) => setRecherche(e.target.value)} />
         </div>
-        <Liste value={filtreCat} onChange={(e) => setFiltreCat(e.target.value)} className="w-40">
+        <Liste value={filtreCat} onChange={(e) => setFiltreCat(e.target.value)} className="w-full sm:w-40">
           <option value="tout">Toutes catégories</option>
           {(categories ?? []).map((c) => (
             <option key={c.id} value={String(c.id)}>{c.nom}</option>
@@ -145,14 +145,14 @@ export default function Produits() {
         <button
           type="button"
           onClick={() => { setSeulementStockBas((v) => !v); setMontrerInactifs(false); }}
-          className={cn('rounded-xl border px-3 py-2 text-sm font-medium', seulementStockBas ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')}
+          className={cn('w-full rounded-xl border px-3 py-2 text-sm font-medium sm:w-auto', seulementStockBas ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')}
         >
           Stock bas
         </button>
         <button
           type="button"
           onClick={() => { setMontrerInactifs((v) => !v); setSeulementStockBas(false); }}
-          className={cn('rounded-xl border px-3 py-2 text-sm font-medium', montrerInactifs ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')}
+          className={cn('w-full rounded-xl border px-3 py-2 text-sm font-medium sm:w-auto', montrerInactifs ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50')}
         >
           Archivés
         </button>

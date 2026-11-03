@@ -102,8 +102,8 @@ export default function ClotureCaisse() {
   }
 
   return (
-    <div className="space-y-4 p-3 lg:p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="titre-page">Clôture de caisse</h1>
         <div className="flex gap-2">
           <Bouton variante="secondaire" taille="sm" onClick={exporter}>

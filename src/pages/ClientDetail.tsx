@@ -111,7 +111,7 @@ export default function ClientDetail() {
   }
 
   return (
-    <div className="space-y-4 p-3 lg:p-4">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
       <div className="flex items-center gap-2">
         <Bouton variante="fantome" taille="sm" onClick={() => navigate('/clients')}>
           <ArrowLeft className="size-4" /> Clients
@@ -173,7 +173,7 @@ export default function ClientDetail() {
               const waDette = lienWhatsApp(client.telephone, `Bonjour ${client.nom}, c'est ${settings?.nomBoutique ?? 'votre boutique'}. Nous vous rappelons le solde de ${formatFCFA(resteDette(d))} (${formaterDate(d.date)}). Merci d'avance !`);
               return (
                 <li key={d.id} className="flex flex-wrap items-center gap-2 py-3">
-                  <div className="min-w-40 flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-800">
                       <Montant valeur={formatNombre(d.montant)} />
                     </p>

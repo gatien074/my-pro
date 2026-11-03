@@ -81,7 +81,7 @@ export default function Panier() {
           <div className="mx-auto max-w-2xl space-y-4">
             <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
               {lignes.map((l) => (
-                <li key={l.produitId} className="flex items-center gap-3 px-4 py-3">
+                <li key={l.produitId} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">{l.nom}</p>
                     <p className="cellule-tabulaire text-xs text-slate-500">{formatNombre(l.prixUnitaire)} FCFA / {l.unite}</p>

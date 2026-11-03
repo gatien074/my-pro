@@ -30,6 +30,15 @@ export interface DonneesCreationBoutique {
   caissier?: { nom: string; pin: string };
 }
 
+/** Catégories par défaut pour qu'une boutique créée manuellement ait déjà une liste exploitable. */
+const CATEGORIES_PAR_DEFAUT: Array<{ nom: string; couleur?: string }> = [
+  { nom: 'Alimentation', couleur: '#1e6b47' },
+  { nom: 'Boissons', couleur: '#276fba' },
+  { nom: 'Hygiène', couleur: '#d3940f' },
+  { nom: 'Maison & électricité', couleur: '#8b5a09' },
+  { nom: 'Divers', couleur: '#717d74' },
+];
+
 /** Crée la configuration et le compte gérant (première utilisation). */
 export async function creerBoutique(d: DonneesCreationBoutique): Promise<number> {
   const pinHash = await hacherPin(d.pin);
@@ -42,12 +51,15 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
     seuilAlerteDefaut: 5,
     autoriserStockNegatif: false,
     verrouillageAuto: true,
-    modeDemo: false,
     creeLe: Date.now(),
   };
   const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true, boutiqueId: 'app' };
   const id = await db.users.add(user);
   await db.settings.put(settings);
+
+  if ((await db.categories.count()) === 0) {
+    await db.categories.bulkAdd(CATEGORIES_PAR_DEFAUT);
+  }
 
   // Caissier créé en même temps que la boutique (facultatif, modifiable ensuite dans Paramètres).
   const nomCaissier = d.caissier?.nom.trim() ?? '';
@@ -465,6 +477,16 @@ export async function majUtilisateur(userId: number, modifs: Partial<Omit<User, 
 }
 
 /* ------------------------------------ Catégories ------------------------------------ */
+
+/** Crée les catégories par défaut si elles n'existent pas encore. */
+export async function creerCategoriesParDefaut(): Promise<number> {
+  const existantes = await db.categories.toArray();
+  const nomsExistants = new Set(existantes.map((c) => c.nom.toLowerCase()));
+  const aAjouter = CATEGORIES_PAR_DEFAUT.filter((c) => !nomsExistants.has(c.nom.toLowerCase()));
+  if (aAjouter.length === 0) return 0;
+  await db.categories.bulkAdd(aAjouter);
+  return aAjouter.length;
+}
 
 export async function ajouterCategorie(nom: string, couleur?: string): Promise<number> {
   const n = nom.trim();

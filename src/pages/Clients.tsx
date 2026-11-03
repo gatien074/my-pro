@@ -85,7 +85,7 @@ export default function Clients() {
               const acc = encoursParClient.get(c.id!);
               return (
                 <li key={c.id}>
-                  <Link to={`/clients/${c.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-slate-50">
+                  <Link to={`/clients/${c.id}`} className="flex flex-wrap items-center gap-3 px-4 py-3 transition hover:bg-slate-50">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
                       {initiales(c.nom)}
                     </span>

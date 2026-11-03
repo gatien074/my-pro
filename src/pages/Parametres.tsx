@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { DatabaseBackup, Download, RotateCcw, Store, Trash2, Upload, UserPlus, Users2 } from 'lucide-react';
+import { DatabaseBackup, Download, Store, Trash2, Upload, UserPlus, Users2 } from 'lucide-react';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import {
@@ -12,7 +12,6 @@ import {
   supprimerCategorie,
   supprimerUtilisateur,
 } from '../db/ops';
-import { semerDonneesDemo } from '../db/seed';
 import {
   analyserSauvegarde,
   lireFichierTexte,
@@ -156,18 +155,6 @@ export default function Parametres() {
       if (!ok) return;
       await restaurerDonnees(sauvegarde);
       deconnecter();
-    } catch (err) {
-      setErreurDonnees(err instanceof Error ? err.message : 'Erreur inattendue.');
-    }
-  }
-
-  async function rejouerDemo() {
-    setMsgDonnees('');
-    setErreurDonnees('');
-    try {
-      await toutEffacer();
-      await semerDonneesDemo();
-      setMsgDonnees('Données de démonstration recréées.');
     } catch (err) {
       setErreurDonnees(err instanceof Error ? err.message : 'Erreur inattendue.');
     }
@@ -365,11 +352,6 @@ export default function Parametres() {
               e.target.value = '';
             }}
           />
-          {settings.modeDemo && (
-            <Bouton variante="accent" onClick={() => void rejouerDemo()}>
-              <RotateCcw className="size-4" /> Recharger la démo
-            </Bouton>
-          )}
         </div>
         {msgDonnees && <div className="mt-3"><Alerte type="info">{msgDonnees}</Alerte></div>}
         {erreurDonnees && <div className="mt-3"><Alerte>{erreurDonnees}</Alerte></div>}
@@ -411,16 +393,18 @@ export default function Parametres() {
             <Libelle>Nom</Libelle>
             <Champ value={formUser.nom} onChange={(e) => setFormUser((f) => ({ ...f, nom: e.target.value }))} autoFocus />
           </div>
-          <div>
-            <Libelle>Rôle</Libelle>
-            <Liste value={formUser.role} onChange={(e) => setFormUser((f) => ({ ...f, role: e.target.value as 'gerant' | 'caissier' }))}>
-              <option value="caissier">Caissier (caisse, produits, clients)</option>
-              <option value="gerant">Gérant (tout, y compris les rapports)</option>
-            </Liste>
-          </div>
-          <div>
-            <Libelle>Code PIN (4 chiffres)</Libelle>
-            <Champ type="password" inputMode="numeric" maxLength={4} value={formUser.pin} onChange={(e) => setFormUser((f) => ({ ...f, pin: e.target.value }))} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Libelle>Rôle</Libelle>
+              <Liste value={formUser.role} onChange={(e) => setFormUser((f) => ({ ...f, role: e.target.value as 'gerant' | 'caissier' }))}>
+                <option value="caissier">Caissier (caisse, produits, clients)</option>
+                <option value="gerant">Gérant (tout, y compris les rapports)</option>
+              </Liste>
+            </div>
+            <div>
+              <Libelle>Code PIN (4 chiffres)</Libelle>
+              <Champ type="password" inputMode="numeric" maxLength={4} value={formUser.pin} onChange={(e) => setFormUser((f) => ({ ...f, pin: e.target.value }))} />
+            </div>
           </div>
           {erreurUser && <Alerte>{erreurUser}</Alerte>}
         </form>

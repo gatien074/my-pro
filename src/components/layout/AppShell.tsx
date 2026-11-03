@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, ShoppingBag, Users } from 'lucide-react';
 import { useSettings } from '../../db/hooks';
+import { toutEffacer } from '../../db/backup';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
 import { Chargement, cn, EcranVerrouille, ZoneToast } from '../ui';
 import { usePanier } from '../../store/cart';
 import { useAlerteRuptures } from '../../hooks/useAlerteRuptures';
+import { toast } from '../../store/toast';
 
 const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingCart; roles: Role[] }> = [
   { vers: '/', libelle: 'Caisse', icone: ShoppingCart, roles: ['gerant', 'caissier'] },
@@ -34,6 +36,31 @@ export function AppShell() {
     const minuteur = setTimeout(() => setDemarragePret(true), 8000);
     return () => clearTimeout(minuteur);
   }, []);
+
+  // Nettoyage unique des anciennes données de démonstration.
+  useEffect(() => {
+    if (!settings) return;
+    if (window.localStorage.getItem('demo-nettoye-v1') === '1') return;
+    const ancienModeDemo = (settings as { modeDemo?: boolean }).modeDemo;
+    if (!ancienModeDemo) return;
+
+    window.localStorage.setItem('demo-nettoye-v1', '1');
+    const repondreOui = window.confirm(
+      "Une ancienne installation contenait des données de démonstration.\n\nVoulez-vous effacer ces données maintenant pour repartir avec une vraie base locale ?",
+    );
+
+    if (!repondreOui) {
+      toast.info('Démonstration désactivée', 'Les anciennes données restent dans Dexie. Vous pouvez les effacer dans Paramètres → Zone dangereuse.');
+      return;
+    }
+
+    void (async () => {
+      await toutEffacer();
+      deconnecter();
+      navigate('/onboarding', { replace: true });
+      window.location.reload();
+    })();
+  }, [settings, deconnecter, navigate]);
 
   if (enChargement || !demarragePret) return <Chargement texte="Chargement…" />;
   if (!settings) return <Navigate to="/onboarding" replace />;

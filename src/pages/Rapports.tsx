@@ -266,14 +266,14 @@ export default function Rapports() {
       </div>
 
       {/* Sélecteur de période */}
-      <div className="zone-non-imprimable flex flex-wrap items-stretch gap-2 sm:items-end">
+      <div className="zone-non-imprimable grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-stretch">
         {PRESETS.map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => setPreset(p.id)}
             className={cn(
-              'flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition sm:flex-none',
+              'w-full rounded-xl border px-3 py-2 text-sm font-medium transition sm:w-auto',
               preset === p.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
             )}
           >

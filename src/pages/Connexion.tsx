@@ -102,11 +102,11 @@ export default function Connexion() {
             <p className="mt-1 mb-5 text-sm text-white/60">Saisissez votre code PIN</p>
 
             <div className="cellule-tabulaire mb-2 flex justify-center gap-3">
-              {[0, 1, 2, 3].map((i) => (
+              {[0, 1, 2, 3, 4, 5, ].map((i) => (
                 <span
                   key={i}
                   className={cn(
-                    'flex size-12 items-center justify-center rounded-xl border-2 bg-white/[0.06] text-2xl font-bold',
+                    'flex size-12 items-center justify-center rounded-xl border-2 bg-white/6 text-2xl font-bold',
                     saisie.length > i ? 'border-amber-400 text-amber-300' : 'border-white/15 text-white/25',
                   )}
                 >
@@ -153,9 +153,6 @@ export default function Connexion() {
               </button>
             </div>
 
-            {settings.modeDemo && (
-              <p className="mt-6 text-xs text-white/40">Démo : gérant « 1234 » · caissière « 4321 »</p>
-            )}
           </div>
         </div>
       )}

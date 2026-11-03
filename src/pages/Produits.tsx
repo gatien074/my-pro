@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Archive, Pencil, Plus, Search } from 'lucide-react';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
-import { basculerProduitActif, enregistrerProduit } from '../db/ops';
+import { basculerProduitActif, creerCategoriesParDefaut, enregistrerProduit } from '../db/ops';
 import type { Produit } from '../db/types';
 import { formatNombre } from '../lib/money';
 import { margePourcent } from '../lib/calc';
@@ -106,6 +106,15 @@ export default function Produits() {
         edition !== 'nouveau' && edition ? edition.id : undefined,
       );
       setEdition(null);
+    } catch (err) {
+      setErreur(err instanceof Error ? err.message : 'Erreur inattendue.');
+    }
+  }
+
+  async function ajouterCategoriesRapides() {
+    setErreur('');
+    try {
+      await creerCategoriesParDefaut();
     } catch (err) {
       setErreur(err instanceof Error ? err.message : 'Erreur inattendue.');
     }
@@ -258,6 +267,16 @@ export default function Produits() {
                   <option key={c.id} value={String(c.id)}>{c.nom}</option>
                 ))}
               </Liste>
+              {(categories ?? []).length === 0 && (
+                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-amber-600">
+                    Aucune catégorie enregistrée.
+                  </p>
+                  <Bouton type="button" taille="sm" variante="secondaire" onClick={() => void ajouterCategoriesRapides()}>
+                    Créer des catégories
+                  </Bouton>
+                </div>
+              )}
             </div>
             <div>
               <Libelle>Seuil d'alerte stock</Libelle>

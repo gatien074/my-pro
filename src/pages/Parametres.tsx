@@ -197,7 +197,7 @@ export default function Parametres() {
   if (!settings) return null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 p-3 lg:p-4">
+    <div className="mx-auto max-w-3xl space-y-4 p-3 sm:p-4 lg:p-5">
       <h1 className="titre-page">Paramètres</h1>
 
       {/* Boutique */}
@@ -255,7 +255,7 @@ export default function Parametres() {
 
       {/* Utilisateurs */}
       <section className="carte p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700">
             <Users2 className="size-4" /> Utilisateurs
           </h2>

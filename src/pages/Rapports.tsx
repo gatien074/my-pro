@@ -249,8 +249,8 @@ export default function Rapports() {
   }
 
   return (
-    <div className="space-y-4 p-3 lg:p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="titre-page">Rapports</h1>
         <div className="zone-non-imprimable flex gap-2">
           <Bouton variante="secondaire" taille="sm" onClick={exporterVentes}>
@@ -266,14 +266,14 @@ export default function Rapports() {
       </div>
 
       {/* Sélecteur de période */}
-      <div className="zone-non-imprimable flex flex-wrap items-end gap-2">
+      <div className="zone-non-imprimable flex flex-wrap items-stretch gap-2 sm:items-end">
         {PRESETS.map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => setPreset(p.id)}
             className={cn(
-              'rounded-xl border px-3 py-2 text-sm font-medium transition',
+              'flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition sm:flex-none',
               preset === p.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
             )}
           >
@@ -304,7 +304,7 @@ export default function Rapports() {
         ) : (
           <>
             {/* KPI */}
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <CarteStats libelle="Chiffre d'affaires" valeur={formatFCFA(kpis.ca)} />
               <CarteStats libelle="Bénéfice brut" valeur={formatFCFA(kpis.benefice)} accent />
               <CarteStats libelle="Ventes" valeur={formatNombre(kpis.nb)} />

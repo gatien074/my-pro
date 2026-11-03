@@ -85,7 +85,7 @@ export default function Stock() {
   }
 
   return (
-    <div className="space-y-4 p-3 lg:p-4">
+    <div className="space-y-4 p-3 sm:p-4 lg:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="titre-page">Stock</h1>
         <div className="flex gap-2">
@@ -143,8 +143,8 @@ export default function Stock() {
         ) : (
           <ul className="divide-y divide-slate-100">
             {enAlerte.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-slate-800">{p.nom}</p>
                   <p className="text-xs text-slate-400">{catMap.get(p.categoryId ?? -1)?.nom ?? '—'}</p>
                 </div>

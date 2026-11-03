@@ -55,8 +55,8 @@ export default function Clients() {
   }
 
   return (
-    <div className="space-y-3 p-3 lg:p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 p-3 sm:p-4 lg:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="titre-page">Clients &amp; dettes</h1>
         <Bouton onClick={() => setFormOuvert(true)}>
           <Plus className="size-4" /> Nouveau client

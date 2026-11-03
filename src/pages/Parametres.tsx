@@ -255,26 +255,27 @@ export default function Parametres() {
           {(utilisateurs ?? []).map((u) => {
             const gerantLie = u.gerantId ? (utilisateurs ?? []).find((g) => g.id === u.gerantId) : undefined;
             return (
-            <li key={u.id} className="flex flex-wrap items-center gap-2 py-2.5">
+            <li key={u.id} className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center">
               <span className="min-w-0 flex-1">
-                <span className="font-medium text-slate-800">{u.nom}</span>
-                {u.role === 'gerant' && <Badge couleur="teal" className="ml-2">Gérant</Badge>}
-                {u.role === 'caissier' && <Badge couleur="gris" className="ml-2">Caissier</Badge>}
-                {u.role === 'caissier' && gerantLie && (
-                  <Badge couleur="bleu" className="ml-2">Lié à {gerantLie.nom}</Badge>
-                )}
-                <Badge couleur={u.actif ? 'vert' : 'rouge'} className="ml-2">{u.actif ? 'Actif' : 'Désactivé'}</Badge>
+                <span className="block font-medium text-slate-800">{u.nom}</span>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {u.role === 'gerant' && <Badge couleur="teal">Gérant</Badge>}
+                  {u.role === 'caissier' && <Badge couleur="gris">Caissier</Badge>}
+                  {u.role === 'caissier' && gerantLie && <Badge couleur="bleu">Lié à {gerantLie.nom}</Badge>}
+                  <Badge couleur={u.actif ? 'vert' : 'rouge'}>{u.actif ? 'Actif' : 'Désactivé'}</Badge>
+                </div>
               </span>
-              <div className="flex flex-wrap items-center gap-1">
-                <Bouton taille="sm" variante="secondaire" onClick={() => { setPinUser(u.id!); setNouveauPin(''); setErreurUser(''); }}>
+              <div className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center">
+                <Bouton taille="sm" variante="secondaire" className="w-full sm:w-auto" onClick={() => { setPinUser(u.id!); setNouveauPin(''); setErreurUser(''); }}>
                   Modifier le PIN
                 </Bouton>
-                <Bouton taille="sm" variante="secondaire" onClick={() => void basculerActif(u.id!, !u.actif)}>
+                <Bouton taille="sm" variante="secondaire" className="w-full sm:w-auto" onClick={() => void basculerActif(u.id!, !u.actif)}>
                   {u.actif ? 'Désactiver' : 'Activer'}
                 </Bouton>
                 <Bouton
                   taille="sm"
                   variante="danger"
+                  className="col-span-2 w-full sm:col-auto sm:w-auto"
                   onClick={async () => {
                     if (!confirm(`Supprimer définitivement l'utilisateur ${u.nom} ?`)) return;
                     try {

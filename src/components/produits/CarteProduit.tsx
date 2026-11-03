@@ -26,7 +26,7 @@ export function CarteProduit({ produit, categorie, index, peutGerer, onModifier,
       className="animer-apparition carte-produit group flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md focus-within:border-brand-400"
       style={{ animationDelay: `${decalageAnimationProduit(produit.nom, index)}ms` }}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
+      <div className="relative aspect-\[4/3] w-full overflow-hidden bg-slate-100">
         <img
           src={imageCourante}
           alt={produit.nom}
@@ -59,7 +59,7 @@ export function CarteProduit({ produit, categorie, index, peutGerer, onModifier,
         </div>
 
         {peutGerer && (
-          <div className="flex gap-1.5 border-t border-slate-100 pt-2">
+          <div className="flex gap-1.5 border-t border-s-slate-50 pt-2">
             <Bouton taille="sm" variante="secondaire" className="flex-1" onClick={onModifier}>
               <Pencil className="size-4" />
               <span className="hidden sm:inline">Modifier</span>

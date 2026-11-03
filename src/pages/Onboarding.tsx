@@ -73,15 +73,15 @@ export default function Onboarding() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Libelle>Code PIN (4 chiffres) *</Libelle>
+                <Libelle>Code PIN (10 chiffres) *</Libelle>
                 <Champ
                   type="password"
                   inputMode="numeric"
-                  maxLength={4}
+                  maxLength={10}
                   autoComplete="off"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••"
+                  placeholder="••••••••••••"
                 />
               </div>
               <div>
@@ -89,11 +89,11 @@ export default function Onboarding() {
                 <Champ
                   type="password"
                   inputMode="numeric"
-                  maxLength={4}
+                  maxLength={10}
                   autoComplete="off"
                   value={pin2}
                   onChange={(e) => setPin2(e.target.value)}
-                  placeholder="••••"
+                  placeholder="••••••••••••"
                 />
               </div>
             </div>
@@ -115,11 +115,11 @@ export default function Onboarding() {
                   <Champ
                     type="password"
                     inputMode="numeric"
-                    maxLength={4}
+                    maxLength={10}
                     autoComplete="off"
                     value={pinCaissier}
                     onChange={(e) => setPinCaissier(e.target.value)}
-                    placeholder="••••"
+                    placeholder="••••••••••••"
                   />
                 </div>
               </div>

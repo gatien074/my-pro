@@ -106,12 +106,12 @@ export function ListeProduits({ produits, categoriesMap, peutGerer, onModifier, 
             type="button"
             onClick={() => defiler(1)}
             aria-label="Produits suivants"
-            className="absolute top-1/2 right-2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-600 shadow-md transition hover:border-brand-300 hover:text-brand-700 md:flex"
+            className="absolute top-1/2 right-2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-400 bg-white/5 text-slate-600 shadow-md transition hover:border-brand-300 hover:text-brand-700 md:flex"
           >
             <ChevronRight className="size-5" />
           </button>
 
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-20 items-center justify-end bg-gradient-to-l from-slate-50 via-slate-50/70 to-transparent pr-1">
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-20 items-center justify-end bg-gradient-to- from-slate-500 via-slate-800 to-transparent pr-1">
             <div className="flex flex-col items-center gap-0.5 text-brand-700">
               <span className="hidden text-[11px] font-semibold sm:block">Faites défiler</span>
               <ChevronRight className="animer-fleche-defilement size-5" />

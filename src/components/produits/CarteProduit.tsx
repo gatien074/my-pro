@@ -59,7 +59,7 @@ export function CarteProduit({ produit, categorie, index, peutGerer, onModifier,
         </div>
 
         {peutGerer && (
-          <div className="flex gap-1.5 border-t border-s-slate-50 pt-2">
+          <div className="flex gap-1.5 border-t border-slate-100 pt-2">
             <Bouton taille="sm" variante="secondaire" className="flex-1" onClick={onModifier}>
               <Pencil className="size-4" />
               <span className="hidden sm:inline">Modifier</span>

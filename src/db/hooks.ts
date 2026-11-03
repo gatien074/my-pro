@@ -13,17 +13,34 @@ export function useSettings(): { settings: Settings | undefined; enChargement: b
   const [enChargement, setEnChargement] = useState(true);
   useEffect(() => {
     let actif = true;
+    let resolu = false;
+    const appliquer = (s: Settings | undefined) => {
+      if (!actif) return;
+      setSettings(s ?? undefined);
+      setEnChargement(false);
+    };
+
+    // Réactivité normale (onboarding, paramètres).
     const subscription = liveQuery(() => db.settings.get('app')).subscribe({
       next: (s) => {
-        if (!actif) return;
-        setSettings(s ?? undefined);
-        setEnChargement(false);
+        resolu = true;
+        appliquer(s ?? undefined);
       },
       error: () => {
-        if (!actif) return;
-        setEnChargement(false);
+        if (actif) setEnChargement(false);
       },
     });
+
+    // Filet de sécurité : si liveQuery n'émet pas, une lecture directe débloque l'affichage.
+    void db.settings
+      .get('app')
+      .then((s) => {
+        if (!resolu) appliquer(s ?? undefined);
+      })
+      .catch(() => {
+        if (actif) setEnChargement(false);
+      });
+
     return () => {
       actif = false;
       subscription.unsubscribe();

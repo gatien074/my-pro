@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Delete, LogIn, ShieldCheck } from 'lucide-react';
+import { Delete, LogIn, Search, ShieldCheck } from 'lucide-react';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import { hacherPin } from '../lib/pin';
@@ -17,7 +17,15 @@ export default function Connexion() {
 
   const [idChoisi, setIdChoisi] = useState<number | null>(null);
   const [saisie, setSaisie] = useState('');
+  const [recherche, setRecherche] = useState('');
   const [erreur, setErreur] = useState('');
+
+  const rechercheNormalisee = recherche.trim().toLowerCase();
+  const utilisateursFiltres = (utilisateurs ?? []).filter((u) => {
+    if (!rechercheNormalisee) return true;
+    const role = u.role === 'gerant' ? 'gérant' : 'caissier';
+    return u.nom.toLowerCase().includes(rechercheNormalisee) || role.includes(rechercheNormalisee);
+  });
 
   if (enChargement || utilisateurs === null) return null;
   if (!settings) return <Navigate to="/onboarding" replace />;
@@ -74,30 +82,44 @@ export default function Connexion() {
             {utilisateurs.length === 0 ? (
               <Alerte>Aucun profil actif. Contactez le gérant.</Alerte>
             ) : (
-              <div className="space-y-2">
-                {utilisateurs.map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => {
-                      setIdChoisi(u.id!);
-                      setSaisie('');
-                      setErreur('');
-                    }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:border-brand-400 hover:bg-brand-50"
-                  >
-                    <span className="flex size-10 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
-                      {initiales(u.nom)}
-                    </span>
-                    <span className="flex-1">
-                      <span className="block text-sm font-semibold text-slate-900">{u.nom}</span>
-                      <span className="text-xs text-slate-400">{u.role === 'gerant' ? 'Gérant' : 'Caissier'}</span>
-                    </span>
-                    <LogIn className="size-5 text-slate-300" />
-                  </button>
-                ))}
-
-              </div>
+              <>
+                <div className="relative mb-3">
+                  <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    className="champ pl-9"
+                    placeholder="Rechercher un nom ou un rôle…"
+                    value={recherche}
+                    onChange={(e) => setRecherche(e.target.value)}
+                  />
+                </div>
+                {utilisateursFiltres.length === 0 ? (
+                  <p className="text-sm text-white/50">Aucun profil ne correspond à cette recherche.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {utilisateursFiltres.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          setIdChoisi(u.id!);
+                          setSaisie('');
+                          setErreur('');
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:border-brand-400 hover:bg-brand-50"
+                      >
+                        <span className="flex size-10 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
+                          {initiales(u.nom)}
+                        </span>
+                        <span className="flex-1">
+                          <span className="block text-sm font-semibold text-slate-900">{u.nom}</span>
+                          <span className="text-xs text-slate-400">{u.role === 'gerant' ? 'Gérant' : 'Caissier'}</span>
+                        </span>
+                        <LogIn className="size-5 text-slate-300" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -111,7 +133,7 @@ export default function Connexion() {
             <p className="mt-1 mb-5 text-sm text-white/60">Saisissez votre code PIN</p>
 
             <div className="cellule-tabulaire mb-2 flex justify-center gap-3">
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              {[0, 1, 2, 3, 4, ].map((i) => (
                 <span
                   key={i}
                   className={cn(

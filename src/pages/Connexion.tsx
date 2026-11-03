@@ -153,9 +153,6 @@ export default function Connexion() {
               </button>
             </div>
 
-            {settings.modeDemo && (
-              <p className="mt-6 text-xs text-white/40">Démo : gérant « 1234 » · caissière « 4321 »</p>
-            )}
           </div>
         </div>
       )}

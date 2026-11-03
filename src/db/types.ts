@@ -21,7 +21,6 @@ export interface Settings {
   seuilAlerteDefaut: number;
   autoriserStockNegatif: boolean;
   verrouillageAuto?: boolean;
-  modeDemo: boolean;
   creeLe: number;
 }
 

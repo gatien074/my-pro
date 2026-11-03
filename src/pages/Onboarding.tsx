@@ -3,7 +3,6 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { Store } from 'lucide-react';
 import { useSettings } from '../db/hooks';
 import { creerBoutique } from '../db/ops';
-import { semerDonneesDemo } from '../db/seed';
 import { pinValide } from '../lib/pin';
 import { useSession } from '../store/session';
 import { Alerte, Bouton, Champ, Libelle, Chargement } from '../components/ui';
@@ -19,7 +18,6 @@ export default function Onboarding() {
   const [pin2, setPin2] = useState('');
   const [nomCaissier, setNomCaissier] = useState('');
   const [pinCaissier, setPinCaissier] = useState('');
-  const [avecDemo, setAvecDemo] = useState(true);
   const [erreur, setErreur] = useState('');
   const [enCours, setEnCours] = useState(false);
 
@@ -41,13 +39,6 @@ export default function Onboarding() {
     try {
       const caissier = nomCaissier.trim() ? { nom: nomCaissier.trim(), pin: pinCaissier } : undefined;
       const id = await creerBoutique({ nomBoutique: nomBoutique.trim(), nomGerant: nomGerant.trim(), pin: pin, caissier });
-      if (avecDemo) {
-        try {
-          await semerDonneesDemo();
-        } catch {
-          // la démo est facultative : on continue même si elle échoue
-        }
-      }
       connecter({ id, nom: nomGerant.trim(), role: 'gerant' });
       navigate('/', { replace: true });
     } catch (err) {
@@ -133,15 +124,6 @@ export default function Onboarding() {
                 </div>
               </div>
             </div>
-
-            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
-              <input type="checkbox" checked={avecDemo} onChange={(e) => setAvecDemo(e.target.checked)} className="mt-0.5 size-4 accent-brand-600" />
-              <span className="text-sm text-slate-600">
-                <span className="font-semibold text-slate-800">Charger des données de démonstration</span>
-                <br />
-                Catalogue « Alimentation Chez Nzamba », 30 jours de ventes, clients endettés. Vous pourrez tout remplacer ensuite.
-              </span>
-            </label>
 
             {erreur && <Alerte>{erreur}</Alerte>}
           </div>

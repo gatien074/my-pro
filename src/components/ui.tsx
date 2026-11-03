@@ -144,7 +144,9 @@ export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {piedDePage != null && (
-          <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3.5">{piedDePage}</div>
+          <div className="flex flex-col-reverse gap-2 border-t border-slate-200 px-5 py-3.5 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
+            {piedDePage}
+          </div>
         )}
       </div>
     </div>

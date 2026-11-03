@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Plus, Search } from 'lucide-react';
 import { db } from '../db/db';
@@ -8,6 +8,7 @@ import type { Produit } from '../db/types';
 import { formatNombre } from '../lib/money';
 import { margePourcent } from '../lib/calc';
 import { genererImageProduit } from '../lib/productImage';
+import { telechargerImageProduit } from '../lib/remoteImage';
 import { useSession } from '../store/session';
 import { ListeProduits } from '../components/produits/ListeProduits';
 import { Alerte, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale } from '../components/ui';
@@ -101,14 +102,16 @@ export default function Produits() {
           prixVente: Number(champs.prixVente || 0),
           stock: Number(champs.stock || 0),
           seuilAlerte: Number(champs.seuilAlerte || 0),
-          imageUrl:
-            champs.imageUrl.trim() ||
-            genererImageProduit({
-              nom: champs.nom,
-              categorie: champs.categoryId && categoriesMap.has(Number(champs.categoryId))
-                ? categoriesMap.get(Number(champs.categoryId))?.nom
-                : undefined,
-            }),
+          imageUrl: await (async () => {
+            const saisie = champs.imageUrl.trim();
+            if (saisie) return saisie;
+
+            const categorie = champs.categoryId && categoriesMap.has(Number(champs.categoryId))
+              ? categoriesMap.get(Number(champs.categoryId))?.nom
+              : undefined;
+            const telechargee = await telechargerImageProduit(champs.nom, categorie);
+            return telechargee ?? genererImageProduit({ nom: champs.nom, categorie });
+          })(),
         },
         edition !== 'nouveau' && edition ? edition.id : undefined,
       );
@@ -135,6 +138,33 @@ export default function Produits() {
   const margeUtile = edition
     ? margePourcent(Number(champs.prixAchat || 0), Number(champs.prixVente || 0))
     : null;
+
+  const traitementImagesRef = useRef(false);
+  useEffect(() => {
+    if (traitementImagesRef.current) return;
+    const manquants = (produits ?? []).filter((p) => !p.imageUrl);
+    if (manquants.length === 0) return;
+
+    traitementImagesRef.current = true;
+    let actif = true;
+
+    void (async () => {
+      for (const produit of manquants) {
+        if (!actif) return;
+        const categorie = produit.categoryId != null ? categoriesMap.get(produit.categoryId)?.nom : undefined;
+        const image = await telechargerImageProduit(produit.nom, categorie);
+        if (!actif) return;
+        await db.products.update(produit.id!, {
+          imageUrl: image ?? genererImageProduit({ nom: produit.nom, categorie }),
+        });
+      }
+    })();
+
+    return () => {
+      actif = false;
+      traitementImagesRef.current = false;
+    };
+  }, [produits, categoriesMap]);
 
   return (
     <div className="space-y-3 p-3 sm:p-4 lg:p-5">
@@ -240,17 +270,17 @@ export default function Produits() {
               <Champ type="number" inputMode="numeric" min={0} value={champs.seuilAlerte} onChange={(e) => setChamps((c) => ({ ...c, seuilAlerte: e.target.value }))} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 items-start">
             <div>
-              <Libelle>Prix d'achat (FCFA)</Libelle>
+              <Libelle className="min-h-10 leading-tight">Prix d'achat (FCFA)</Libelle>
               <Champ type="number" inputMode="numeric" min={0} value={champs.prixAchat} onChange={(e) => setChamps((c) => ({ ...c, prixAchat: e.target.value }))} />
             </div>
             <div>
-              <Libelle>Prix de vente (FCFA)</Libelle>
+              <Libelle className="min-h-10 leading-tight">Prix de vente (FCFA)</Libelle>
               <Champ type="number" inputMode="numeric" min={0} value={champs.prixVente} onChange={(e) => setChamps((c) => ({ ...c, prixVente: e.target.value }))} />
             </div>
             <div>
-              <Libelle>Stock {edition !== 'nouveau' && '(actuel)'}</Libelle>
+              <Libelle className="min-h-10 leading-tight">Stock {edition !== 'nouveau' && '(actuel)'}</Libelle>
               <Champ type="number" inputMode="numeric" value={champs.stock} onChange={(e) => setChamps((c) => ({ ...c, stock: e.target.value }))} />
             </div>
           </div>

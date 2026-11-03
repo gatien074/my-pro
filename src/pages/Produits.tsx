@@ -1,20 +1,16 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Archive, Pencil, Plus, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { db } from '../db/db';
 import { useSettings } from '../db/hooks';
 import { basculerProduitActif, creerCategoriesParDefaut, enregistrerProduit } from '../db/ops';
 import type { Produit } from '../db/types';
 import { formatNombre } from '../lib/money';
 import { margePourcent } from '../lib/calc';
+import { genererImageProduit } from '../lib/productImage';
 import { useSession } from '../store/session';
-import { Alerte, Badge, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale, Montant } from '../components/ui';
-
-function badgeStock(p: Produit): { couleur: 'vert' | 'ambre' | 'rouge'; texte: string } {
-  if (p.stock <= 0) return { couleur: 'rouge', texte: 'Épuisé' };
-  if (p.stock <= p.seuilAlerte) return { couleur: 'ambre', texte: `Stock bas (${formatNombre(p.stock)})` };
-  return { couleur: 'vert', texte: `${formatNombre(p.stock)} en stock` };
-}
+import { ListeProduits } from '../components/produits/ListeProduits';
+import { Alerte, Bouton, Champ, cn, EtatVide, Libelle, Liste, Modale } from '../components/ui';
 
 interface Champs {
   nom: string;
@@ -25,6 +21,7 @@ interface Champs {
   prixVente: string;
   stock: string;
   seuilAlerte: string;
+  imageUrl: string;
 }
 
 const CHAMPS_VIDES: Champs = {
@@ -36,6 +33,7 @@ const CHAMPS_VIDES: Champs = {
   prixVente: '',
   stock: '',
   seuilAlerte: '',
+  imageUrl: '',
 };
 
 export default function Produits() {
@@ -83,6 +81,7 @@ export default function Produits() {
       prixVente: String(p.prixVente),
       stock: String(p.stock),
       seuilAlerte: String(p.seuilAlerte),
+      imageUrl: p.imageUrl ?? '',
     });
     setErreur('');
     setEdition(p);
@@ -102,6 +101,14 @@ export default function Produits() {
           prixVente: Number(champs.prixVente || 0),
           stock: Number(champs.stock || 0),
           seuilAlerte: Number(champs.seuilAlerte || 0),
+          imageUrl:
+            champs.imageUrl.trim() ||
+            genererImageProduit({
+              nom: champs.nom,
+              categorie: champs.categoryId && categoriesMap.has(Number(champs.categoryId))
+                ? categoriesMap.get(Number(champs.categoryId))?.nom
+                : undefined,
+            }),
         },
         edition !== 'nouveau' && edition ? edition.id : undefined,
       );
@@ -173,64 +180,14 @@ export default function Produits() {
           texte="Ajoutez vos produits avec leur prix d'achat et de vente pour suivre la marge et le stock."
         />
       ) : (
-        <div className="carte overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs text-slate-500">
-                <tr>
-                  <th className="px-4 py-2.5 font-medium">Produit</th>
-                  <th className="hidden px-3 py-2.5 font-medium md:table-cell">Catégorie</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Prix vente</th>
-                  <th className="hidden px-3 py-2.5 text-right font-medium sm:table-cell">Achat</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Marge</th>
-                  <th className="px-3 py-2.5 font-medium">Stock</th>
-                  <th className="px-3 py-2.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {liste.map((p) => {
-                  const bs = badgeStock(p);
-                  const marge = margePourcent(p.prixAchat, p.prixVente);
-                  return (
-                    <tr key={p.id} className="hover:bg-slate-50/60">
-                      <td className="px-4 py-2.5">
-                        <p className="font-medium text-slate-800">{p.nom}</p>
-                        {p.codeBarres && <p className="text-xs text-slate-400">{p.codeBarres}</p>}
-                      </td>
-                      <td className="hidden px-3 py-2.5 text-slate-500 md:table-cell">{categoriesMap.get(p.categoryId ?? -1)?.nom ?? '—'}</td>
-                      <td className="cellule-tabulaire px-3 py-2.5 text-right font-semibold text-slate-700">
-                        <Montant valeur={formatNombre(p.prixVente)} />
-                      </td>
-                      <td className="cellule-tabulaire hidden px-3 py-2.5 text-right text-slate-500 sm:table-cell">
-                        <Montant valeur={formatNombre(p.prixAchat)} />
-                      </td>
-                      <td className="cellule-tabulaire px-3 py-2.5 text-right text-green-700">
-                        {marge != null ? `${formatNombre(p.prixVente - p.prixAchat)} (${marge} %)` : '—'}
-                      </td>
-                      <td className="px-3 py-2.5"><Badge couleur={bs.couleur}>{bs.texte}</Badge></td>
-                      <td className="px-3 py-2.5 text-right">
-                        {estGerant && (
-                          <span className="flex justify-end gap-1">
-                            <button type="button" onClick={() => ouvrirEdition(p)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-brand-700" aria-label="Modifier">
-                              <Pencil className="size-4" />
-                            </button>
-                            {p.actif && (
-                              <button type="button" onClick={() => void archiver(p)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600" aria-label="Archiver">
-                                <Archive className="size-4" />
-                              </button>
-                            )}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ListeProduits
+          produits={liste}
+          categoriesMap={new Map<number, string>((categories ?? []).map((c) => [c.id!, c.nom]))}
+          peutGerer={estGerant}
+          onModifier={(p) => ouvrirEdition(p)}
+          onArchiver={(p) => void archiver(p)}
+        />
       )}
-
       <Modale
         ouverte={edition !== null}
         onFermer={() => setEdition(null)}
@@ -296,6 +253,18 @@ export default function Produits() {
               <Libelle>Stock {edition !== 'nouveau' && '(actuel)'}</Libelle>
               <Champ type="number" inputMode="numeric" value={champs.stock} onChange={(e) => setChamps((c) => ({ ...c, stock: e.target.value }))} />
             </div>
+          </div>
+          <div>
+            <Libelle>URL de l'image (facultatif)</Libelle>
+            <Champ
+              value={champs.imageUrl}
+              onChange={(e) => setChamps((c) => ({ ...c, imageUrl: e.target.value }))}
+              placeholder="Laisser vide pour générer une image automatique"
+              inputMode="url"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Si vous ne mettez pas d'image, une image professionnelle est générée automatiquement à partir du nom et de la catégorie.
+            </p>
           </div>
           {margeUtile != null && !Number.isNaN(margeUtile) && (
             <p className="text-xs text-slate-500">

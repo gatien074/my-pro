@@ -90,6 +90,7 @@ export interface InputProduit {
   prixVente: number;
   stock?: number;
   seuilAlerte: number;
+  imageUrl?: string;
 }
 
 export async function enregistrerProduit(input: InputProduit, id?: number, userId?: number): Promise<number> {
@@ -106,7 +107,17 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
     if (id) {
       const existant = await db.products.get(id);
       if (!existant) throw new Error('Produit introuvable.');
-      await db.products.update(id, { nom, codeBarres: cb, categoryId: input.categoryId, unite: input.unite, prixAchat: input.prixAchat, prixVente: input.prixVente, seuilAlerte: input.seuilAlerte });
+      const imageUrl = input.imageUrl?.trim();
+      await db.products.update(id, {
+        nom,
+        codeBarres: cb,
+        categoryId: input.categoryId,
+        unite: input.unite,
+        prixAchat: input.prixAchat,
+        prixVente: input.prixVente,
+        seuilAlerte: input.seuilAlerte,
+        ...(imageUrl ? { imageUrl } : {}),
+      });
 
       // Une correction du stock depuis la fiche crée un mouvement d'inventaire tracé.
       if (input.stock != null) {
@@ -137,6 +148,7 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
       stock: stockInitial,
       seuilAlerte: Math.round(input.seuilAlerte),
       actif: true,
+      imageUrl: input.imageUrl,
       creeLe: Date.now(),
     });
     if (stockInitial > 0) {

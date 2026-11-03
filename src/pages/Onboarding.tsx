@@ -105,13 +105,13 @@ export default function Onboarding() {
                   Créez-le maintenant, ou plus tard dans Paramètres → Utilisateurs. Il reste rattaché à votre compte de gérant.
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
                 <div>
-                  <Libelle>Nom du caissier / de la caissière</Libelle>
+                  <Libelle className="min-h-10 leading-tight">Nom du caissier / de la caissière</Libelle>
                   <Champ value={nomCaissier} onChange={(e) => setNomCaissier(e.target.value)} placeholder="Ex. Reine Mbeng" />
                 </div>
                 <div>
-                  <Libelle>Code PIN caissier</Libelle>
+                  <Libelle className="min-h-10 leading-tight">Code PIN caissier</Libelle>
                   <Champ
                     type="password"
                     inputMode="numeric"

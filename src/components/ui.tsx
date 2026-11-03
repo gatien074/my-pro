@@ -67,8 +67,8 @@ export function ZoneTexte({ className, ...props }: ZoneProps) {
   return <textarea className={cn('champ min-h-24', className)} {...props} />;
 }
 
-export function Libelle({ children }: { children: ReactNode }) {
-  return <label className="libelle">{children}</label>;
+export function Libelle({ children, className }: { children: ReactNode; className?: string }) {
+  return <label className={cn('libelle', className)}>{children}</label>;
 }
 
 /* ----------------------------------- Badge ----------------------------------- */

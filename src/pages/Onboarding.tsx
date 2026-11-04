@@ -28,7 +28,7 @@ export default function Onboarding() {
   if (enChargement) return <Chargement />;
   if (settings) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-encre px-4 py-10">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-encre px-3 py-6 sm:px-4 sm:py-10">
         <div className="w-full max-w-md space-y-5 text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-600 text-white ring-1 ring-white/15">
             <Store className="size-7" />
@@ -104,8 +104,9 @@ export default function Onboarding() {
   return (
     <div className="flex min-h-dvh flex-col bg-encre">
       <div className="bande-gabon h-1 shrink-0" aria-hidden="true" />
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <form onSubmit={soumettre} className="w-full max-w-md space-y-6">
+      <div className="flex flex-1 items-center justify-center px-3 py-6 sm:px-4 sm:py-10">
+        <div className="w-full max-w-md space-y-6">
+        <form onSubmit={soumettre} className="space-y-6">
           <div className="text-center">
             <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl bg-brand-600 text-white shadow-lg ring-1 ring-white/15">
               <img src="/icon.svg" alt="Logo Caisse & Stock" className="size-10 rounded-xl" />
@@ -125,7 +126,7 @@ export default function Onboarding() {
               <Libelle>Votre nom (gérant) *</Libelle>
               <Champ value={nomGerant} onChange={(e) => setNomGerant(e.target.value)} placeholder="Ex. Joseph Nzamba" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Libelle>Code PIN (4 chiffres) *</Libelle>
                 <Champ
@@ -213,6 +214,7 @@ export default function Onboarding() {
           />
           {erreurSauvegarde && <div className="mt-3"><Alerte>{erreurSauvegarde}</Alerte></div>}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -189,9 +189,10 @@ export default function Onboarding() {
         </form>
 
         <div className="text-center">
-          <button type="button" onClick={() => navigate('/connexion')} className="text-xs text-white/60 underline-offset-2 hover:text-white hover:underline">
+          <button type="submit" form="form-onboarding-connexion" className="text-xs text-white/60 underline-offset-2 hover:text-white hover:underline">
             J'ai déjà une boutique → Se connecter
           </button>
+          <form id="form-onboarding-connexion" onSubmit={(e) => { e.preventDefault(); navigate('/connexion'); }} className="hidden" />
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">

@@ -153,11 +153,11 @@ export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }
 
   if (!ouverte) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }} onFocus={(e) => { if (e.target === e.currentTarget) conteneurRef.current?.focus(); }}>
       <div
         ref={conteneurRef}
         className={cn(
-          'animer-apparition flex max-h-[92vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl ring-1 ring-encre/10 sm:rounded-2xl',
+          'animer-apparition flex max-h-[85dvh] w-full flex-col rounded-t-2xl bg-white shadow-2xl ring-1 ring-encre/10 sm:max-h-[90dvh] sm:rounded-2xl',
           large ? 'sm:max-w-2xl' : 'sm:max-w-md',
         )}
         role="dialog"

@@ -105,18 +105,18 @@ export default function Onboarding() {
     <div className="flex min-h-dvh flex-col bg-encre">
       <div className="bande-gabon h-1 shrink-0" aria-hidden="true" />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <form onSubmit={soumettre} className="w-full max-w-md space-y-5">
+        <form onSubmit={soumettre} className="w-full max-w-md space-y-6">
           <div className="text-center">
-            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-brand-600 text-white ring-1 ring-white/15">
-              <Store className="size-7" />
+            <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-3xl bg-brand-600 text-white shadow-lg ring-1 ring-white/15">
+              <img src="/icon.svg" alt="Logo Caisse & Stock" className="size-10 rounded-xl" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-white">Bienvenue !</h1>
-            <p className="mx-auto mt-1.5 max-w-sm text-sm text-white/60">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">Bienvenue !</h1>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-white/65">
               Configurez votre boutique une fois pour toutes. Tout reste ensuite dans cet appareil, hors ligne.
             </p>
           </div>
 
-          <div className="carte space-y-4 p-5">
+          <div className="carte space-y-5 p-5 shadow-xl sm:p-6">
             <div>
               <Libelle>Nom de la boutique *</Libelle>
               <Champ value={nomBoutique} onChange={(e) => setNomBoutique(e.target.value)} placeholder="Ex. Alimentation Chez Nzamba" autoFocus />
@@ -131,11 +131,11 @@ export default function Onboarding() {
                 <Champ
                   type="password"
                   inputMode="numeric"
-                  maxLength={10}
+                  maxLength={4}
                   autoComplete="off"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder="••••"
                 />
               </div>
               <div>
@@ -143,16 +143,16 @@ export default function Onboarding() {
                 <Champ
                   type="password"
                   inputMode="numeric"
-                  maxLength={10}
+                  maxLength={4}
                   autoComplete="off"
                   value={pin2}
                   onChange={(e) => setPin2(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder="••••"
                 />
               </div>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div>
                 <p className="text-sm font-semibold text-slate-800">Compte caissier (facultatif)</p>
                 <p className="text-xs text-slate-500">
@@ -193,8 +193,8 @@ export default function Onboarding() {
           </button>
         </div>
 
-        <div className="text-center">
-          <p className="mb-3 text-xs text-white/50">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
+          <p className="mb-3 text-xs text-white/55">
             Vous êtes caissier ? Ne créez pas de boutique : demandez au gérant une sauvegarde de la boutique, puis restaurez-la ici.
           </p>
           <Bouton variante="secondaire" taille="sm" onClick={() => inputSauvegardeRef.current?.click()}>

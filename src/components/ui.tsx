@@ -120,9 +120,11 @@ export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }
   useEffect(() => {
     if (!ouverte) return;
 
+    const estClavier = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
     const ecouteSrc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onFermer();
-      if (e.key !== 'Tab' || !conteneurRef.current) return;
+      if (estClavier || e.key !== 'Tab' || !conteneurRef.current) return;
 
       const focusables = Array.from(
         conteneurRef.current.querySelectorAll<HTMLElement>(
@@ -144,16 +146,16 @@ export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }
     };
 
     window.addEventListener('keydown', ecouteSrc);
-    const minuteur = window.setTimeout(() => boutonFermerRef.current?.focus(), 10);
+    const minuteur = estClavier ? null : window.setTimeout(() => boutonFermerRef.current?.focus(), 10);
     return () => {
       window.removeEventListener('keydown', ecouteSrc);
-      window.clearTimeout(minuteur);
+      if (minuteur != null) window.clearTimeout(minuteur);
     };
   }, [ouverte, onFermer]);
 
   if (!ouverte) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }} onFocus={(e) => { if (e.target === e.currentTarget) conteneurRef.current?.focus(); }}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }}>
       <div
         ref={conteneurRef}
         className={cn(

@@ -62,8 +62,8 @@ db.on('blocked', () => {
 
 db.open().catch((err) => {
   console.error('Erreur ouverture DB:', err);
-  // Tentative de réinitialisation si erreur de schéma
-  if (err.name === 'UpgradeError' || err.name === 'SchemaError' || err.name === 'VersionError' || err.name === 'DexieError') {
+  // Ne recréer la base que pour une vraie erreur de schéma/version, jamais pour une erreur transitoire.
+  if (err.name === 'UpgradeError' || err.name === 'SchemaError' || err.name === 'VersionError') {
     console.warn('Tentative de suppression et recréation de la base...');
     db.delete()
       .then(() => {

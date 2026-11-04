@@ -44,10 +44,10 @@ export function AppShell() {
     const ancienModeDemo = (settings as { modeDemo?: boolean }).modeDemo;
     if (!ancienModeDemo) return;
 
-    window.localStorage.setItem('demo-nettoye-v1', '1');
     const repondreOui = window.confirm(
       "Une ancienne installation contenait des données de démonstration.\n\nVoulez-vous effacer ces données maintenant pour repartir avec une vraie base locale ?",
     );
+    window.localStorage.setItem('demo-nettoye-v1', '1');
 
     if (!repondreOui) {
       toast.info('Démonstration désactivée', 'Les anciennes données restent dans Dexie. Vous pouvez les effacer dans Paramètres → Zone dangereuse.');
@@ -92,7 +92,7 @@ export function AppShell() {
 
       <div className="flex min-h-0 flex-1">
         {/* Barre latérale — bureau */}
-        <aside className="hidden w-60 shrink-0 flex-col bg-encre lg:flex">
+        <aside className="hidden w-60 shrink-0 flex-col bg-gradient-to-b from-encre to-encre-2 shadow-xl lg:flex">
           <div className="flex items-center gap-2.5 px-4 py-4">
             <div className="font-display flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white ring-1 ring-white/15">
               C+S
@@ -154,7 +154,7 @@ export function AppShell() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* En-tête — mobile */}
-          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
             <div className="flex min-w-0 items-center gap-2">
               <div className="font-display flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">
                 C+S
@@ -176,7 +176,7 @@ export function AppShell() {
           </main>
 
           {/* Navigation — mobile */}
-          <nav className="fixed inset-x-0 bottom-0 z-40 bg-encre pb-[env(safe-area-inset-bottom)] lg:hidden">
+          <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-encre/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_32px_rgba(12,42,32,0.35)] backdrop-blur lg:hidden">
             <div className="flex w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory">
               {navAutorisee.map(({ vers, libelle, icone: Icone }) => (
                 <NavLink

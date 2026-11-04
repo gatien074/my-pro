@@ -59,7 +59,12 @@ export function enDateInput(t: number = Date.now()): string {
 
 /** Convertit une valeur de champ date ("yyyy-MM-dd") en timestamp (début du jour). */
 export function depuisDateInput(s: string, finJour = false): number {
+  if (!s) return finJour ? finDeJour() : debutDeJour();
   const [y, m, d] = s.split('-').map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
+    return finJour ? finDeJour() : debutDeJour();
+  }
   const date = new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+  if (Number.isNaN(date.getTime())) return finJour ? finDeJour() : debutDeJour();
   return finJour ? finDeJour(date.getTime()) : debutDeJour(date.getTime());
 }

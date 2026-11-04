@@ -62,7 +62,7 @@ export const usePanier = create<EtatPanier>()(
       retirer: (produitId) =>
         set((etat) => ({ ...etat, lignes: etat.lignes.filter((l) => l.produitId !== produitId) })),
       definirRemise: (v) => set((etat) => ({ ...etat, remise: Math.max(0, Math.round(v) || 0) })),
-      vider: () => set((etat) => ({ ...etat, lignes: [] })),
+      vider: () => set((etat) => ({ ...etat, lignes: [], remise: 0 })),
     }),
     { name: 'panier-caisse-stock', storage: createJSONStorage(() => sessionStorage) },
   ),

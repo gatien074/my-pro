@@ -88,7 +88,7 @@ export default function Onboarding() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Libelle>Code PIN (10 chiffres) *</Libelle>
+                <Libelle>Code PIN (4 chiffres) *</Libelle>
                 <Champ
                   type="password"
                   inputMode="numeric"
@@ -130,7 +130,7 @@ export default function Onboarding() {
                   <Champ
                     type="password"
                     inputMode="numeric"
-                    maxLength={10}
+                    maxLength={4}
                     autoComplete="off"
                     value={pinCaissier}
                     onChange={(e) => setPinCaissier(e.target.value)}
@@ -147,6 +147,12 @@ export default function Onboarding() {
             {enCours ? 'Création en cours…' : 'Créer ma boutique'}
           </Bouton>
         </form>
+
+        <div className="text-center">
+          <button type="button" onClick={() => navigate('/connexion')} className="text-xs text-white/60 underline-offset-2 hover:text-white hover:underline">
+            J'ai déjà une boutique → Se connecter
+          </button>
+        </div>
 
         <div className="text-center">
           <p className="mb-3 text-xs text-white/50">

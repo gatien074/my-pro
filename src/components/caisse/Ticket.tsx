@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Printer, Repeat, Undo2 } from 'lucide-react';
 import type { Settings, StatutVente, Vente } from '../../db/types';
 import { annulerVente } from '../../db/ops';
@@ -24,16 +24,21 @@ export default function Ticket({ vente, settings, resolveClient, annulateurId, o
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState('');
 
+  const resolveClientRef = useRef(resolveClient);
+  useEffect(() => {
+    resolveClientRef.current = resolveClient;
+  }, [resolveClient]);
+
   useEffect(() => {
     if (vente.clientId == null) return;
     let annule = false;
-    void resolveClient(vente.clientId).then((nom) => {
+    void resolveClientRef.current(vente.clientId).then((nom) => {
       if (!annule) setClientNom(nom ?? 'Client');
     });
     return () => {
       annule = true;
     };
-  }, [vente.clientId, resolveClient]);
+  }, [vente.clientId]);
 
   async function confirmerAnnulation() {
     if (vente.id == null) return;
@@ -88,7 +93,7 @@ export default function Ticket({ vente, settings, resolveClient, annulateurId, o
       }
     >
       {/* zone imprimée : contient uniquement le ticket */}
-      <div id="zone-ticket" className="mx-auto w-260px border border-slate-200 bg-white p-3 text-[11px] leading-4 shadow-sm">
+      <div id="zone-ticket" className="mx-auto w-[260px] border border-slate-200 bg-white p-3 text-[11px] leading-4 shadow-sm">
         <div className="text-center">
           <p className="text-[13px] font-bold">{settings.nomBoutique}</p>
           {settings.adresse && <p>{settings.adresse}</p>}

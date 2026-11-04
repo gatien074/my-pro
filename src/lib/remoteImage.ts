@@ -13,6 +13,12 @@ export async function telechargerImageProduit(
   categorie?: string,
   signal?: AbortSignal,
 ): Promise<string | null> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return null;
+
+  const controleur = new AbortController();
+  const minuteur = setTimeout(() => controleur.abort(), 8000);
+  const signalEffectif = signal ?? controleur.signal;
+
   const motsCles = [nom, categorie]
     .filter(Boolean)
     .join(' ')
@@ -20,15 +26,19 @@ export async function telechargerImageProduit(
     .toLowerCase()
     .replace(/\s+/g, ' ');
 
-  if (!motsCles) return null;
+  if (!motsCles) {
+    clearTimeout(minuteur);
+    return null;
+  }
 
-  // 1) Wikimedia Commons : recherche d'image libre.
+  try {
+    // 1) Wikimedia Commons : recherche d'image libre.
   try {
     const urlRecherche =
       'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' +
       encodeURIComponent(motsCles) +
       '&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=480&format=json&origin=*';
-    const reponse = await fetch(urlRecherche, { signal });
+    const reponse = await fetch(urlRecherche, { signal: signalEffectif });
     const donnees = (await reponse.json()) as {
       query?: { pages?: Record<string, { imageinfo?: Array<{ thumburl?: string; url?: string }> }> };
     };
@@ -37,7 +47,7 @@ export async function telechargerImageProduit(
     const imageUrl = premiere?.imageinfo?.[0]?.thumburl ?? premiere?.imageinfo?.[0]?.url;
 
     if (imageUrl) {
-      const image = await fetch(imageUrl, { signal });
+      const image = await fetch(imageUrl, { signal: signalEffectif });
       if (image.ok) {
         const blob = await image.blob();
         return blobVersDataUrl(blob);
@@ -50,7 +60,7 @@ export async function telechargerImageProduit(
   // 2) LoremFlickr : photo correspondant aux tags.
   try {
     const tags = motsCles.replace(/\s+/g, ',');
-    const image = await fetch(`https://loremflickr.com/480/360/${encodeURIComponent(tags)}`, { signal });
+    const image = await fetch(`https://loremflickr.com/480/360/${encodeURIComponent(tags)}`, { signal: signalEffectif });
     if (image.ok) {
       const blob = await image.blob();
       return blobVersDataUrl(blob);
@@ -60,6 +70,9 @@ export async function telechargerImageProduit(
   }
 
   return null;
+  } finally {
+    clearTimeout(minuteur);
+  }
 }
 
 function blobVersDataUrl(blob: Blob): Promise<string> {

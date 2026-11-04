@@ -197,7 +197,7 @@
 
   /* ---------------- Cartes différenciées par hiérarchie ---------------- */
   .carte {
-    @apply rounded-xl border border-slate-200 bg-white;
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
   }
 
   .carte-compacte {

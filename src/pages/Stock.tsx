@@ -219,7 +219,7 @@ export default function Stock() {
           {(action === 'entree' || action === 'perte') && (
             <div>
               <Libelle>Quantité {action === 'entree' ? 'reçue' : 'perdue'} *</Libelle>
-              <Champ type="number" inputMode="numeric" min={action === 'perte' ? undefined : 0} value={quantite} onChange={(e) => setQuantite(e.target.value)} />
+              <Champ type="number" inputMode="numeric" min={0} value={quantite} onChange={(e) => setQuantite(e.target.value)} />
             </div>
           )}
 

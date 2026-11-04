@@ -139,18 +139,17 @@ export default function Produits() {
     ? margePourcent(Number(champs.prixAchat || 0), Number(champs.prixVente || 0))
     : null;
 
-  const traitementImagesRef = useRef(false);
+  const imagesTraiteesRef = useRef<Set<number>>(new Set());
   useEffect(() => {
-    if (traitementImagesRef.current) return;
-    const manquants = (produits ?? []).filter((p) => !p.imageUrl);
+    if (!navigator.onLine) return;
+    const manquants = (produits ?? []).filter((p) => p.id != null && !p.imageUrl && !imagesTraiteesRef.current.has(p.id!));
     if (manquants.length === 0) return;
 
-    traitementImagesRef.current = true;
     let actif = true;
-
     void (async () => {
       for (const produit of manquants) {
         if (!actif) return;
+        imagesTraiteesRef.current.add(produit.id!);
         const categorie = produit.categoryId != null ? categoriesMap.get(produit.categoryId)?.nom : undefined;
         const image = await telechargerImageProduit(produit.nom, categorie);
         if (!actif) return;
@@ -162,7 +161,6 @@ export default function Produits() {
 
     return () => {
       actif = false;
-      traitementImagesRef.current = false;
     };
   }, [produits, categoriesMap]);
 

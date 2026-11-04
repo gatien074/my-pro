@@ -19,8 +19,8 @@ export function formatPourcent(valeur: number): string {
 
 /** Convertit une saisie (chaîne) en montant entier FCFA. */
 export function versMontant(saisie: string | number): number {
-  if (typeof saisie === 'number') return Math.round(saisie);
-  const nettoyee = saisie.replace(/[^\d-]/g, '');
-  const n = parseInt(nettoyee, 10);
-  return Number.isNaN(n) ? 0 : n;
+  if (typeof saisie === 'number') return Number.isFinite(saisie) ? Math.round(saisie) : 0;
+  const nettoyee = saisie.trim().replace(/\s/g, '').replace(',', '.');
+  const n = Number(nettoyee);
+  return Number.isFinite(n) ? Math.round(n) : 0;
 }

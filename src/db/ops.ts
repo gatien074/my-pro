@@ -53,28 +53,31 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
     verrouillageAuto: true,
     creeLe: Date.now(),
   };
-  const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true, boutiqueId: 'app' };
-  const id = await db.users.add(user);
-  await db.settings.put(settings);
+  let id = 0;
+  await db.transaction('rw', [db.users, db.settings, db.categories], async () => {
+    const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true, boutiqueId: 'app' };
+    id = await db.users.add(user);
+    await db.settings.put(settings);
 
-  if ((await db.categories.count()) === 0) {
-    await db.categories.bulkAdd(CATEGORIES_PAR_DEFAUT);
-  }
+    if ((await db.categories.count()) === 0) {
+      await db.categories.bulkAdd(CATEGORIES_PAR_DEFAUT);
+    }
 
-  // Caissier créé en même temps que la boutique (facultatif, modifiable ensuite dans Paramètres).
-  const nomCaissier = d.caissier?.nom.trim() ?? '';
-  if (nomCaissier) {
-    if (!pinValide(d.caissier!.pin)) throw new Error('Le PIN du caissier doit contenir 4 chiffres.');
-    const pinCaissier = await hacherPin(d.caissier!.pin);
-    await db.users.add({
-      nom: nomCaissier,
-      role: 'caissier',
-      pinHash: pinCaissier,
-      actif: true,
-      boutiqueId: 'app',
-      gerantId: id,
-    });
-  }
+    // Caissier créé en même temps que la boutique (facultatif, modifiable ensuite dans Paramètres).
+    const nomCaissier = d.caissier?.nom.trim() ?? '';
+    if (nomCaissier) {
+      if (!pinValide(d.caissier!.pin)) throw new Error('Le PIN du caissier doit contenir 4 chiffres.');
+      const pinCaissier = await hacherPin(d.caissier!.pin);
+      await db.users.add({
+        nom: nomCaissier,
+        role: 'caissier',
+        pinHash: pinCaissier,
+        actif: true,
+        boutiqueId: 'app',
+        gerantId: id,
+      });
+    }
+  });
 
   return id;
 }
@@ -291,7 +294,7 @@ export async function creerVente(e: EntreeVente): Promise<number> {
     }
 
     // Numérotation annuelle
-    const nb = await db.sales.where('date').between(periode[0], periode[1]).count();
+    const nb = await db.sales.where('date').between(periode[0], periode[1]).and((v) => v.statut === 'vendue').count();
     const numero = `V-${annee}-${String(nb + 1).padStart(4, '0')}`;
 
     const lignesFinales = [];

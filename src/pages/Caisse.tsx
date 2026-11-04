@@ -109,7 +109,7 @@ export default function Caisse() {
               autoFocus
             />
           </div>
-          {erreur && <p className="mt-2 text-sm text-red-600">{erreur}</p>}
+          {erreur && <p role="alert" className="mt-2 text-sm text-red-600">{erreur}</p>}
         </div>
 
         <div className="flex gap-2 overflow-x-auto px-3 pb-2 lg:px-4">

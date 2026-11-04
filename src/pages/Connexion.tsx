@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Delete, LogIn, Search, ShieldCheck } from 'lucide-react';
 import { db } from '../db/db';
@@ -14,6 +14,7 @@ export default function Connexion() {
   const utilisateurs = useLiveQuery(() => db.users.toArray().then((us) => us.filter((u) => u.actif)), []) ?? null;
   const connecter = useSession((s) => s.connecter);
   const dejaConnecte = useSession((s) => s.utilisateur);
+  const navigate = useNavigate();
 
   const [idChoisi, setIdChoisi] = useState<number | null>(null);
   const [saisie, setSaisie] = useState('');
@@ -88,6 +89,7 @@ export default function Connexion() {
                   <input
                     className="champ pl-9"
                     placeholder="Rechercher un nom ou un rôle…"
+                    aria-label="Rechercher un profil"
                     value={recherche}
                     onChange={(e) => setRecherche(e.target.value)}
                   />
@@ -121,6 +123,15 @@ export default function Connexion() {
                 )}
               </>
             )}
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => navigate('/onboarding')}
+                className="text-xs text-white/50 underline-offset-2 hover:text-white/80 hover:underline"
+              >
+                Créer une nouvelle boutique
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -133,7 +144,7 @@ export default function Connexion() {
             <p className="mt-1 mb-5 text-sm text-white/60">Saisissez votre code PIN</p>
 
             <div className="cellule-tabulaire mb-2 flex justify-center gap-3">
-              {[0, 1, 2, 3, 4, ].map((i) => (
+              {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
                   className={cn(

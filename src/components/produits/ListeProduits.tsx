@@ -72,7 +72,7 @@ export function ListeProduits({ produits, categoriesMap, peutGerer, onModifier, 
       <div
         ref={listeRef}
         onScroll={mesurer}
-        className="liste-produits-h"
+        className="liste-produits-h touch-pan-x"
         role="region"
         aria-label="Liste des produits"
       >

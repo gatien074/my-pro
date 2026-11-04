@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { DatabaseBackup, Download, Store, Trash2, Upload, UserPlus, Users2 } from 'lucide-react';
 import { db } from '../db/db';
@@ -33,15 +33,28 @@ export default function Parametres() {
   const utilisateur = useSession((s) => s.utilisateur);
 
   /* ------ Boutique ------ */
-  const [formBoutique, setFormBoutique] = useState(() => ({
-    nomBoutique: settings?.nomBoutique ?? '',
-    adresse: settings?.adresse ?? '',
-    telephone: settings?.telephone ?? '',
-    piedTicket: settings?.piedTicket ?? '',
-    seuilAlerteDefaut: String(settings?.seuilAlerteDefaut ?? 5),
-    autoriserStockNegatif: settings?.autoriserStockNegatif ?? false,
-    verrouillageAuto: settings?.verrouillageAuto ?? true,
-  }));
+  const [formBoutique, setFormBoutique] = useState({
+    nomBoutique: '',
+    adresse: '',
+    telephone: '',
+    piedTicket: '',
+    seuilAlerteDefaut: String(5),
+    autoriserStockNegatif: false,
+    verrouillageAuto: true,
+  });
+
+  useEffect(() => {
+    if (!settings) return;
+    setFormBoutique({
+      nomBoutique: settings.nomBoutique ?? '',
+      adresse: settings.adresse ?? '',
+      telephone: settings.telephone ?? '',
+      piedTicket: settings.piedTicket ?? '',
+      seuilAlerteDefaut: String(settings.seuilAlerteDefaut ?? 5),
+      autoriserStockNegatif: settings.autoriserStockNegatif ?? false,
+      verrouillageAuto: settings.verrouillageAuto ?? true,
+    });
+  }, [settings]);
   const [msgBoutique, setMsgBoutique] = useState('');
 
   async function enregistrerBoutique(e: FormEvent) {

@@ -1,4 +1,4 @@
-import { useEffect, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useEffect, useRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
 import { useToasts, type TypeToast } from '../store/toast';
 
@@ -114,21 +114,50 @@ interface ModaleProps {
 }
 
 export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }: ModaleProps) {
+  const conteneurRef = useRef<HTMLDivElement>(null);
+  const boutonFermerRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!ouverte) return;
+
     const ecouteSrc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onFermer();
+      if (e.key !== 'Tab' || !conteneurRef.current) return;
+
+      const focusables = Array.from(
+        conteneurRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+
+      if (focusables.length === 0) return;
+      const premier = focusables[0];
+      const dernier = focusables[focusables.length - 1];
+
+      if (e.shiftKey && document.activeElement === premier) {
+        e.preventDefault();
+        dernier.focus();
+      } else if (!e.shiftKey && document.activeElement === dernier) {
+        e.preventDefault();
+        premier.focus();
+      }
     };
+
     window.addEventListener('keydown', ecouteSrc);
-    return () => window.removeEventListener('keydown', ecouteSrc);
+    const minuteur = window.setTimeout(() => boutonFermerRef.current?.focus(), 10);
+    return () => {
+      window.removeEventListener('keydown', ecouteSrc);
+      window.clearTimeout(minuteur);
+    };
   }, [ouverte, onFermer]);
 
   if (!ouverte) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-encre/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onFermer(); }}>
       <div
+        ref={conteneurRef}
         className={cn(
-          'animer-apparition flex max-h-[92vh] w-full flex-col rounded-t-2xl bg-white shadow-xl ring-1 ring-encre/10 sm:rounded-2xl',
+          'animer-apparition flex max-h-[92vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl ring-1 ring-encre/10 sm:rounded-2xl',
           large ? 'sm:max-w-2xl' : 'sm:max-w-md',
         )}
         role="dialog"
@@ -138,7 +167,7 @@ export function Modale({ ouverte, onFermer, titre, children, piedDePage, large }
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-slate-300 sm:hidden" aria-hidden="true" />
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <h2 className="font-display text-base font-bold text-slate-900">{titre}</h2>
-          <button type="button" onClick={onFermer} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Fermer">
+          <button ref={boutonFermerRef} type="button" onClick={onFermer} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Fermer">
             <X className="size-5" />
           </button>
         </div>

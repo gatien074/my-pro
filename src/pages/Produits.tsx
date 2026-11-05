@@ -88,19 +88,22 @@ export default function Produits() {
     setEdition(p);
   }
 
+  let soumettant = false;
+
   async function soumettre(e: FormEvent) {
     e.preventDefault();
+    if (soumettant) return;
+    soumettant = true;
     setErreur('');
-    let imageAtelecharger = false;
+    let idCree: number | null = null;
     try {
       const categorie = champs.categoryId && categoriesMap.has(Number(champs.categoryId))
         ? categoriesMap.get(Number(champs.categoryId))?.nom
         : undefined;
       const imageSaisie = champs.imageUrl.trim();
       const imageAStocker = imageSaisie || genererImageProduit({ nom: champs.nom, categorie });
-      imageAtelecharger = Boolean(!imageSaisie && navigator.onLine);
 
-      await enregistrerProduit(
+      idCree = await enregistrerProduit(
         {
           nom: champs.nom,
           codeBarres: champs.codeBarres,
@@ -116,17 +119,17 @@ export default function Produits() {
       );
       setEdition(null);
 
-      if (imageAtelecharger) {
+      if (!imageSaisie && navigator.onLine) {
         void (async () => {
           const telechargee = await telechargerImageProduit(champs.nom, categorie);
-          if (!telechargee) return;
-          const produit = (await db.products.where('nom').equals(champs.nom).first()) as Produit | undefined;
-          if (!produit?.id) return;
-          await db.products.update(produit.id, { imageUrl: telechargee });
+          if (!telechargee || !idCree) return;
+          await db.products.update(idCree, { imageUrl: telechargee });
         })();
       }
     } catch (err) {
       setErreur(err instanceof Error ? err.message : 'Erreur inattendue.');
+    } finally {
+      soumettant = false;
     }
   }
 

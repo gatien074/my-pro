@@ -132,63 +132,51 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
   }
   const settings = (await lireSettings()) ?? undefined;
   const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
-  const resultat = await db.transaction('rw', [db.products, db.stockMovements, db.settings, db.categories], async () => {
-    if (id) {
-      const existant = await db.products.get(id);
-      if (!existant) throw new Error('Produit introuvable.');
-      const imageUrl = input.imageUrl?.trim();
-      const categorySyncId =
-        input.categoryId != null
-          ? (await db.categories.get(input.categoryId))?.syncId
-          : (await db.categories.get(existant.categoryId!))?.syncId;
-      const patch: Partial<import('./types').Produit> = {
-        nom,
-        codeBarres: cb,
-        categoryId: input.categoryId,
-        categorySyncId,
-        unite: input.unite,
-        prixAchat: input.prixAchat,
-        prixVente: input.prixVente,
-        seuilAlerte: input.seuilAlerte,
-        boutiqueId: existant.boutiqueId ?? boutiqueId,
-        updatedAt: Date.now(),
-        syncId: existant.syncId ?? UUID(),
-      };
-      if (imageUrl) patch.imageUrl = imageUrl;
-      await db.products.update(id, patch);
 
-      // Une correction du stock depuis la fiche crée un mouvement d'inventaire tracé.
-      if (input.stock != null) {
-        const nouveauStock = Math.max(0, Math.round(input.stock));
-        if (nouveauStock !== existant.stock) {
-          await db.products.update(id, { stock: nouveauStock, updatedAt: Date.now() });
-          await db.stockMovements.add({
-            produitId: id,
-            produitSyncId: patch.syncId,
-            type: 'ajustement',
-            quantite: nouveauStock - existant.stock,
-            motif: 'Correction depuis la fiche produit',
-            date: Date.now(),
-            userId,
-            syncId: UUID(),
-            boutiqueId,
-            updatedAt: Date.now(),
-          });
-        }
-      }
-      const produitMaj = await db.products.get(id);
-      return produitMaj;
-    }
-
-    const stockInitial = Math.max(0, Math.round(input.stock ?? 0));
-    const syncId = UUID();
-    const categorySyncId =
-      input.categoryId != null ? (await db.categories.get(input.categoryId))?.syncId : undefined;
-    const idCree = await db.products.add({
+  let idCree: number;
+  if (id) {
+    const existant = await db.products.get(id);
+    if (!existant) throw new Error('Produit introuvable.');
+    const imageUrl = input.imageUrl?.trim();
+    const patch: Partial<import('./types').Produit> = {
       nom,
       codeBarres: cb,
       categoryId: input.categoryId,
-      categorySyncId,
+      unite: input.unite,
+      prixAchat: input.prixAchat,
+      prixVente: input.prixVente,
+      seuilAlerte: input.seuilAlerte,
+      boutiqueId: existant.boutiqueId ?? boutiqueId,
+      updatedAt: Date.now(),
+      syncId: existant.syncId ?? UUID(),
+    };
+    if (imageUrl) patch.imageUrl = imageUrl;
+    await db.products.update(id, patch);
+
+    // Une correction du stock depuis la fiche crée un mouvement d'inventaire tracé.
+    if (input.stock != null) {
+      const nouveauStock = Math.max(0, Math.round(input.stock));
+      if (nouveauStock !== existant.stock) {
+        await db.products.update(id, { stock: nouveauStock, updatedAt: Date.now() });
+        await db.stockMovements.add({
+          produitId: id,
+          type: 'ajustement',
+          quantite: nouveauStock - existant.stock,
+          motif: 'Correction depuis la fiche produit',
+          date: Date.now(),
+          userId,
+          boutiqueId,
+          updatedAt: Date.now(),
+        });
+      }
+    }
+    idCree = id;
+  } else {
+    const stockInitial = Math.max(0, Math.round(input.stock ?? 0));
+    idCree = await db.products.add({
+      nom,
+      codeBarres: cb,
+      categoryId: input.categoryId,
       unite: input.unite,
       prixAchat: input.prixAchat,
       prixVente: input.prixVente,
@@ -197,34 +185,29 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
       actif: true,
       imageUrl: input.imageUrl,
       creeLe: Date.now(),
-      syncId,
       boutiqueId,
       updatedAt: Date.now(),
     });
     if (stockInitial > 0) {
       await db.stockMovements.add({
         produitId: idCree,
-        produitSyncId: syncId,
         type: 'entree',
         quantite: stockInitial,
         motif: 'Stock initial',
         date: Date.now(),
         userId,
-        syncId: UUID(),
         boutiqueId,
         updatedAt: Date.now(),
       });
     }
-    return (await db.products.get(idCree)) ?? undefined;
-  });
-
-  if (resultat) {
-    void import('../sync/service')
-      .then(({ enfiler }) => enfiler('products', resultat as unknown as Record<string, unknown>, id ? 'update' : 'insert'))
-      .catch((err) => console.error('Enqueue produit (sync) :', err));
   }
 
-  return resultat?.id ?? id ?? 0;
+  // Enfile en arrière-plan pour synchronisation (ne bloque jamais l'UI).
+  void import('../sync/service')
+    .then(({ enfiler }) => enfiler('products', { id: idCree, ...input, boutiqueId, updatedAt: Date.now() }, id ? 'update' : 'insert'))
+    .catch(() => undefined);
+
+  return idCree;
 }
 
 export async function basculerProduitActif(id: number, actif: boolean): Promise<void> {

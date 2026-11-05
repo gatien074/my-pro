@@ -219,9 +219,9 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
   });
 
   if (resultat) {
-    void import('../sync/service').then(({ enfiler }) => {
-      void enfiler('products', resultat as unknown as Record<string, unknown>, id ? 'update' : 'insert');
-    });
+    void import('../sync/service')
+      .then(({ enfiler }) => enfiler('products', resultat as unknown as Record<string, unknown>, id ? 'update' : 'insert'))
+      .catch((err) => console.error('Enqueue produit (sync) :', err));
   }
 
   return resultat?.id ?? id ?? 0;

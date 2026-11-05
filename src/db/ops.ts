@@ -132,7 +132,7 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
   }
   const settings = (await lireSettings()) ?? undefined;
   const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
-  const resultat = await db.transaction('rw', [db.products, db.stockMovements, db.settings], async () => {
+  const resultat = await db.transaction('rw', [db.products, db.stockMovements, db.settings, db.categories], async () => {
     if (id) {
       const existant = await db.products.get(id);
       if (!existant) throw new Error('Produit introuvable.');

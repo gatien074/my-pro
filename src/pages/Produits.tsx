@@ -91,7 +91,15 @@ export default function Produits() {
   async function soumettre(e: FormEvent) {
     e.preventDefault();
     setErreur('');
+    let imageAtelecharger = false;
     try {
+      const categorie = champs.categoryId && categoriesMap.has(Number(champs.categoryId))
+        ? categoriesMap.get(Number(champs.categoryId))?.nom
+        : undefined;
+      const imageSaisie = champs.imageUrl.trim();
+      const imageAStocker = imageSaisie || genererImageProduit({ nom: champs.nom, categorie });
+      imageAtelecharger = Boolean(!imageSaisie && navigator.onLine);
+
       await enregistrerProduit(
         {
           nom: champs.nom,
@@ -102,20 +110,21 @@ export default function Produits() {
           prixVente: Number(champs.prixVente || 0),
           stock: Number(champs.stock || 0),
           seuilAlerte: Number(champs.seuilAlerte || 0),
-          imageUrl: await (async () => {
-            const saisie = champs.imageUrl.trim();
-            if (saisie) return saisie;
-
-            const categorie = champs.categoryId && categoriesMap.has(Number(champs.categoryId))
-              ? categoriesMap.get(Number(champs.categoryId))?.nom
-              : undefined;
-            const telechargee = await telechargerImageProduit(champs.nom, categorie);
-            return telechargee ?? genererImageProduit({ nom: champs.nom, categorie });
-          })(),
+          imageUrl: imageAStocker,
         },
         edition !== 'nouveau' && edition ? edition.id : undefined,
       );
       setEdition(null);
+
+      if (imageAtelecharger) {
+        void (async () => {
+          const telechargee = await telechargerImageProduit(champs.nom, categorie);
+          if (!telechargee) return;
+          const produit = (await db.products.where('nom').equals(champs.nom).first()) as Produit | undefined;
+          if (!produit?.id) return;
+          await db.products.update(produit.id, { imageUrl: telechargee });
+        })();
+      }
     } catch (err) {
       setErreur(err instanceof Error ? err.message : 'Erreur inattendue.');
     }

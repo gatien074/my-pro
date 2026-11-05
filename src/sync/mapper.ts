@@ -32,7 +32,8 @@ export function versSupabase(
   if (!data.updatedAt) data.updatedAt = Date.now();
 
   const conversion = convertirChamps(data, camelToSnake);
-  return { ...conversion, boutique_id: boutiqueId };
+  // `boutique_id` a déjà été converti depuis `boutiqueId`, on ne force pas deux fois.
+  return { ...conversion };
 }
 
 /** Prépare les données Supabase pour l’insertion locale Dexie (camelCase). */
@@ -48,6 +49,8 @@ export function depuisSupabase(
   // Supprimer les champs distants qui n'existent pas localement
   delete objetLocal.id;
   delete objetLocal.boutique_id;
+  // `boutiqueId` a été converti depuis `boutique_id` ; on le garde tel quel
+  // pour la cohérence locale, mais il est déjà inclus dans boutique_id côté distant.
 
   // Résoudre les références d'autres tables via mapping
   if (table === 'products' && objetLocal.categorySyncId) {

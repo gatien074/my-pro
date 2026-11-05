@@ -10,20 +10,22 @@ export async function mettreEnFile(
   userId?: number,
   action: SyncRecord['action'] = 'insert',
 ): Promise<void> {
-  const syncId = (recordData.syncId as string | undefined) ?? UUID();
+  const syncId = (recordData.syncId as string | undefined) ?? (recordData.sync_id as string | undefined) ?? UUID();
 
   await db.transaction('rw', db.syncQueue, async () => {
     const existants = await db.syncQueue
-      .where('[tableName+syncId+status]')
-      .equals([tableName, syncId, 'pending'])
+      .where('[tableName+syncId]')
+      .equals([tableName, syncId])
       .toArray();
 
     if (existants.length) {
       const dernier = existants[existants.length - 1];
+      // insert (création) doit rester prioritaire ; un update ne doit pas « rétrograder » un insert.
+      const nouvelAction = action === 'insert' ? 'insert' : dernier.action === 'insert' ? 'insert' : action;
       await db.syncQueue.update(dernier.id!, {
         recordData,
         boutiqueId,
-        action,
+        action: nouvelAction,
         timestamp: Date.now(),
         syncId,
         retries: 0,

@@ -73,18 +73,21 @@ export async function synchroniser(): Promise<{ traitees: number; echecs: number
 
     for (const entree of entrées) {
       if (!navigator.onLine) break;
+      if (entree.id == null) continue;
       try {
-        await marquerSyncing(entree.id!);
+        await marquerSyncing(entree.id);
         const tableDistance = tableDistante(entree.tableName);
         const data = entree.recordData;
+        const syncId = (entree.syncId ?? data.sync_id ?? data.syncId) as string | undefined;
 
         if (entree.action === 'delete') {
-          if (data.syncId) {
-            const { error } = await supabase.from(tableDistance).delete().eq('sync_id', data.syncId);
+          if (syncId) {
+            const { error } = await supabase.from(tableDistance).delete().eq('sync_id', syncId);
             if (error) throw error;
           }
         } else if (entree.action === 'update') {
-          const { error } = await supabase.from(tableDistance).update(data).eq('sync_id', data.syncId);
+          if (!syncId) throw new Error('sync_id manquant pour update');
+          const { error } = await supabase.from(tableDistance).update(data).eq('sync_id', syncId);
           if (error) throw error;
         } else {
           // idempotent : upsert sur sync_id
@@ -92,11 +95,15 @@ export async function synchroniser(): Promise<{ traitees: number; echecs: number
           if (error) throw error;
         }
 
-        await supprimerSyncRecord(entree.id!);
+        await supprimerSyncRecord(entree.id);
         traitees++;
       } catch (e) {
+        if (entree.id == null) {
+          echecs++;
+          continue;
+        }
         const message = e instanceof Error ? e.message : String(e);
-        await marquerEchec(entree.id!, message, (entree.retries ?? 0) + 1);
+        await marquerEchec(entree.id, message, (entree.retries ?? 0) + 1);
         echecs++;
       }
     }
@@ -143,14 +150,18 @@ export async function tirer(boutiqueId?: string): Promise<number> {
           const syncId = (ligneDistante.sync_id ?? ligneDistante.syncId) as string | undefined;
           if (!syncId) continue;
 
-          // Si elle existe déjà localement, mettre à jour quand la version distante est plus récente.
-          const existe = await tableExistant(table, syncId);
+          // Si elle existe déjà localement, mettre à jour uniquement si la version distante est plus récente (LWW).
+          const actuelle = await tableExistant(table, syncId);
           let localId: number | null | string = null;
 
-          if (existe) {
-            localId = existe.id;
-            if (typeof existe.id === 'number') {
-              await majLigne(table, existe.id, objetLocal);
+          if (actuelle) {
+            localId = actuelle.id;
+            if (typeof actuelle.id === 'number') {
+              const remoteUpdated = (ligneDistante.updated_at ?? ligneDistante.updatedAt ?? 0) as number;
+              const localUpdated = (actuelle.updatedAt ?? 0) as number;
+              if (remoteUpdated >= localUpdated) {
+                await majLigne(table, actuelle.id, objetLocal);
+              }
             }
           } else {
             localId = await insererLigne(table, objetLocal, syncId);
@@ -189,12 +200,12 @@ async function chargerMappings(mapping: MappingSync): Promise<void> {
   }
 }
 
-async function tableExistant(table: string, syncId: string): Promise<{ id: number } | null> {
+async function tableExistant(table: string, syncId: string): Promise<{ id: number; updatedAt?: number } | null> {
   try {
-    const tableDb = (db as unknown as Record<string, { where: (champ: string) => { equals: (val: string) => { first: () => Promise<{ id?: number } | undefined> } } }>)[table];
+    const tableDb = (db as unknown as Record<string, { where: (champ: string) => { equals: (val: string) => { first: () => Promise<{ id?: number; updatedAt?: number } | undefined> } } }>)[table];
     if (!tableDb) return null;
     const ligne = await tableDb.where('syncId').equals(syncId).first();
-    return ligne?.id != null ? { id: ligne.id } : null;
+    return ligne?.id != null ? { id: ligne.id, updatedAt: ligne.updatedAt } : null;
   } catch {
     return null;
   }

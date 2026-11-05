@@ -6,6 +6,7 @@ import { toutEffacer } from '../../db/backup';
 import { useSession } from '../../store/session';
 import type { Role } from '../../db/types';
 import { Chargement, cn, EcranVerrouille, ZoneToast } from '../ui';
+import { SyncStatus } from '../sync/SyncStatus';
 import { usePanier } from '../../store/cart';
 import { useAlerteRuptures } from '../../hooks/useAlerteRuptures';
 import { toast } from '../../store/toast';
@@ -149,6 +150,7 @@ export function AppShell() {
             >
               <Lock className="size-4" /> Verrouiller
             </button>
+            <SyncStatus />
           </div>
         </aside>
 

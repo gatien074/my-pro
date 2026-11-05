@@ -11,7 +11,7 @@ import { Alerte, cn } from '../components/ui';
 
 export default function Connexion() {
   const { settings, enChargement } = useSettings();
-  const utilisateurs = useLiveQuery(() => db.users.toArray().then((us) => us.filter((u) => u.actif)), []) ?? null;
+  const utilisateurs = useLiveQuery(() => db.users.toArray(), []) ?? null;
   const connecter = useSession((s) => s.connecter);
   const dejaConnecte = useSession((s) => s.utilisateur);
   const navigate = useNavigate();
@@ -21,8 +21,9 @@ export default function Connexion() {
   const [recherche, setRecherche] = useState('');
   const [erreur, setErreur] = useState('');
 
+  const utilisateursActifs = (utilisateurs ?? []).filter((u) => u.actif);
   const rechercheNormalisee = recherche.trim().toLowerCase();
-  const utilisateursFiltres = (utilisateurs ?? []).filter((u) => {
+  const utilisateursFiltres = utilisateursActifs.filter((u) => {
     if (!rechercheNormalisee) return true;
     const role = u.role === 'gerant' ? 'gérant' : 'caissier';
     return u.nom.toLowerCase().includes(rechercheNormalisee) || role.includes(rechercheNormalisee);

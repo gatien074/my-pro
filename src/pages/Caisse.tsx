@@ -152,6 +152,7 @@ export default function Caisse() {
                     key={p.id}
                     type="button"
                     onClick={() => ajouterProduit(p)}
+                    disabled={doitBloquer}
                     aria-disabled={doitBloquer}
                     className={cn('etiquette relative', doitBloquer && 'opacity-70 ring-1 ring-red-200')}
                   >

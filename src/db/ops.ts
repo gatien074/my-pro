@@ -5,6 +5,8 @@ import type {
   Dette,
   ModePaiement,
   MouvementStock,
+  PaiementDette,
+  Produit,
   Settings,
   TypeMouvement,
   User,
@@ -12,6 +14,7 @@ import type {
 import { calculeTotaux } from '../lib/calc';
 import { debutAnnee, finDeJour } from '../lib/dates';
 import { hacherPin, pinValide } from '../lib/pin';
+import { UUID } from '../sync/supabase';
 
 /* ---------------------------------- Settings --------------------------------- */
 
@@ -42,6 +45,7 @@ const CATEGORIES_PAR_DEFAUT: Array<{ nom: string; couleur?: string }> = [
 /** Crée la configuration et le compte gérant (première utilisation). */
 export async function creerBoutique(d: DonneesCreationBoutique): Promise<number> {
   const pinHash = await hacherPin(d.pin);
+  const boutiqueId = UUID();
   const settings: Settings = {
     id: 'app',
     nomBoutique: d.nomBoutique,
@@ -52,15 +56,33 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
     autoriserStockNegatif: false,
     verrouillageAuto: true,
     creeLe: Date.now(),
+    syncId: boutiqueId,
+    boutiqueId,
+    updatedAt: Date.now(),
   };
   let id = 0;
   await db.transaction('rw', [db.users, db.settings, db.categories], async () => {
-    const user: User = { nom: d.nomGerant.trim(), role: 'gerant', pinHash, actif: true, boutiqueId: 'app' };
+    const user: User = {
+      nom: d.nomGerant.trim(),
+      role: 'gerant',
+      pinHash,
+      actif: true,
+      boutiqueId,
+      syncId: UUID(),
+      updatedAt: Date.now(),
+    };
     id = await db.users.add(user);
     await db.settings.put(settings);
 
     if ((await db.categories.count()) === 0) {
-      await db.categories.bulkAdd(CATEGORIES_PAR_DEFAUT);
+      await db.categories.bulkAdd(
+        CATEGORIES_PAR_DEFAUT.map((c) => ({
+          ...c,
+          boutiqueId,
+          syncId: UUID(),
+          updatedAt: Date.now(),
+        })),
+      );
     }
 
     // Caissier créé en même temps que la boutique (facultatif, modifiable ensuite dans Paramètres).
@@ -73,8 +95,10 @@ export async function creerBoutique(d: DonneesCreationBoutique): Promise<number>
         role: 'caissier',
         pinHash: pinCaissier,
         actif: true,
-        boutiqueId: 'app',
+        boutiqueId,
         gerantId: id,
+        syncId: UUID(),
+        updatedAt: Date.now(),
       });
     }
   });
@@ -106,45 +130,65 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
     const q = await db.products.where('codeBarres').equals(cb).filter((x) => x.id !== id).count();
     if (q > 0) throw new Error('Ce code-barres est déjà utilisé par un autre produit.');
   }
-  return db.transaction('rw', [db.products, db.stockMovements], async () => {
+  const settings = (await lireSettings()) ?? undefined;
+  const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const resultat = await db.transaction('rw', [db.products, db.stockMovements, db.settings], async () => {
     if (id) {
       const existant = await db.products.get(id);
       if (!existant) throw new Error('Produit introuvable.');
       const imageUrl = input.imageUrl?.trim();
-      await db.products.update(id, {
+      const categorySyncId =
+        input.categoryId != null
+          ? (await db.categories.get(input.categoryId))?.syncId
+          : (await db.categories.get(existant.categoryId!))?.syncId;
+      const patch: Partial<import('./types').Produit> = {
         nom,
         codeBarres: cb,
         categoryId: input.categoryId,
+        categorySyncId,
         unite: input.unite,
         prixAchat: input.prixAchat,
         prixVente: input.prixVente,
         seuilAlerte: input.seuilAlerte,
-        ...(imageUrl ? { imageUrl } : {}),
-      });
+        boutiqueId: existant.boutiqueId ?? boutiqueId,
+        updatedAt: Date.now(),
+        syncId: existant.syncId ?? UUID(),
+      };
+      if (imageUrl) patch.imageUrl = imageUrl;
+      await db.products.update(id, patch);
 
       // Une correction du stock depuis la fiche crée un mouvement d'inventaire tracé.
       if (input.stock != null) {
         const nouveauStock = Math.max(0, Math.round(input.stock));
         if (nouveauStock !== existant.stock) {
-          await db.products.update(id, { stock: nouveauStock });
+          await db.products.update(id, { stock: nouveauStock, updatedAt: Date.now() });
           await db.stockMovements.add({
             produitId: id,
+            produitSyncId: patch.syncId,
             type: 'ajustement',
             quantite: nouveauStock - existant.stock,
             motif: 'Correction depuis la fiche produit',
             date: Date.now(),
             userId,
+            syncId: UUID(),
+            boutiqueId,
+            updatedAt: Date.now(),
           });
         }
       }
-      return id;
+      const produitMaj = await db.products.get(id);
+      return produitMaj;
     }
 
     const stockInitial = Math.max(0, Math.round(input.stock ?? 0));
+    const syncId = UUID();
+    const categorySyncId =
+      input.categoryId != null ? (await db.categories.get(input.categoryId))?.syncId : undefined;
     const idCree = await db.products.add({
       nom,
       codeBarres: cb,
       categoryId: input.categoryId,
+      categorySyncId,
       unite: input.unite,
       prixAchat: input.prixAchat,
       prixVente: input.prixVente,
@@ -153,19 +197,34 @@ export async function enregistrerProduit(input: InputProduit, id?: number, userI
       actif: true,
       imageUrl: input.imageUrl,
       creeLe: Date.now(),
+      syncId,
+      boutiqueId,
+      updatedAt: Date.now(),
     });
     if (stockInitial > 0) {
       await db.stockMovements.add({
         produitId: idCree,
+        produitSyncId: syncId,
         type: 'entree',
         quantite: stockInitial,
         motif: 'Stock initial',
         date: Date.now(),
         userId,
+        syncId: UUID(),
+        boutiqueId,
+        updatedAt: Date.now(),
       });
     }
-    return idCree;
+    return (await db.products.get(idCree)) ?? undefined;
   });
+
+  if (resultat) {
+    void import('../sync/service').then(({ enfiler }) => {
+      void enfiler('products', resultat as unknown as Record<string, unknown>, id ? 'update' : 'insert');
+    });
+  }
+
+  return resultat?.id ?? id ?? 0;
 }
 
 export async function basculerProduitActif(id: number, actif: boolean): Promise<void> {
@@ -185,7 +244,9 @@ export interface InputMouvement {
 
 /** Entrée de stock, perte ou ajustement d'inventaire. */
 export async function enregistrerMouvementStock(input: InputMouvement): Promise<void> {
-  await db.transaction('rw', [db.products, db.stockMovements], async () => {
+  const settings = await lireSettings();
+  const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const resultat = await db.transaction('rw', [db.products, db.stockMovements], async () => {
     const p = await db.products.get(input.produitId);
     if (!p) throw new Error('Produit introuvable.');
     let delta = 0;
@@ -207,16 +268,27 @@ export async function enregistrerMouvementStock(input: InputMouvement): Promise<
       if (!motif) motif = 'Inventaire';
       if (delta === 0) throw new Error('Aucun écart : le stock enregistré correspond déjà.');
     }
-    await db.products.update(input.produitId, { stock: p.stock + delta });
+    await db.products.update(input.produitId, { stock: p.stock + delta, updatedAt: Date.now() });
     const mv: MouvementStock = {
       produitId: input.produitId,
+      produitSyncId: p.syncId,
       type: input.action,
       quantite: delta,
       motif,
       date: Date.now(),
       userId: input.userId,
+      syncId: UUID(),
+      boutiqueId,
+      updatedAt: Date.now(),
     };
-    await db.stockMovements.add(mv);
+    const idMouvement = await db.stockMovements.add(mv);
+    const produitMaj = await db.products.get(input.produitId);
+    return { idMouvement, produit: produitMaj, mouvement: (await db.stockMovements.get(idMouvement)) ?? mv };
+  });
+
+  void import('../sync/service').then(({ enfiler }) => {
+    if (resultat.produit) void enfiler('products', resultat.produit as unknown as Record<string, unknown>, 'update');
+    if (resultat.mouvement) void enfiler('stockMovements', resultat.mouvement as unknown as Record<string, unknown>, 'insert');
   });
 }
 
@@ -225,8 +297,22 @@ export async function enregistrerMouvementStock(input: InputMouvement): Promise<
 export async function enregistrerClient(input: { nom: string; telephone?: string; note?: string }): Promise<number> {
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom du client est obligatoire.');
-  const client: Client = { nom, telephone: input.telephone?.trim() || undefined, note: input.note?.trim() || undefined, creeLe: Date.now() };
-  return db.customers.add(client);
+  const settings = await lireSettings();
+  const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const client: Client = {
+    nom,
+    telephone: input.telephone?.trim() || undefined,
+    note: input.note?.trim() || undefined,
+    creeLe: Date.now(),
+    syncId: UUID(),
+    boutiqueId,
+    updatedAt: Date.now(),
+  };
+  const id = await db.customers.add(client);
+  void import('../sync/service').then(({ enfiler }) => {
+    void enfiler('customers', { ...client, id } as unknown as Record<string, unknown>, 'insert');
+  });
+  return id;
 }
 
 /* ------------------------------------- Ventes ------------------------------------ */
@@ -280,7 +366,8 @@ export async function creerVente(e: EntreeVente): Promise<number> {
   const annee = new Date(date).getFullYear();
   const periode = [debutAnnee(date), finDeJour(new Date(annee, 11, 31).getTime())] as const;
 
-  return db.transaction('rw', [...TOUTES_TABLES], async () => {
+  const boutiqueId = settings.boutiqueId ?? settings.syncId ?? UUID();
+  const resultat = await db.transaction('rw', [...TOUTES_TABLES], async () => {
     // Validation du stock
     if (!settings.autoriserStockNegatif) {
       const produits = await db.products.bulkGet([...quantites.keys()]);
@@ -298,28 +385,40 @@ export async function creerVente(e: EntreeVente): Promise<number> {
     const numero = `V-${annee}-${String(nb + 1).padStart(4, '0')}`;
 
     const lignesFinales = [];
+    const mouvementsCrees: MouvementStock[] = [];
+    const produitsMaj: Produit[] = [];
     for (const l of e.lignes) {
       const p = await db.products.get(l.produitId);
       if (!p) throw new Error('Produit introuvable dans le panier.');
       lignesFinales.push({
         produitId: l.produitId,
+        produitSyncId: p.syncId ?? UUID(),
         nom: p.nom,
         unite: p.unite,
         prixAchat: p.prixAchat,
         prixUnitaire: l.prixUnitaire,
         quantite: l.quantite,
       });
-      await db.products.update(l.produitId, { stock: p.stock - l.quantite });
-      await db.stockMovements.add({
+      await db.products.update(l.produitId, { stock: p.stock - l.quantite, updatedAt: Date.now() });
+      const produitMaj = await db.products.get(l.produitId);
+      if (produitMaj) produitsMaj.push(produitMaj);
+      const mv: MouvementStock = {
         produitId: l.produitId,
+        produitSyncId: p.syncId ?? UUID(),
         type: 'vente',
         quantite: -l.quantite,
         motif: undefined,
         date,
         userId: e.vendeurId,
-      });
+        syncId: UUID(),
+        boutiqueId,
+        updatedAt: Date.now(),
+      };
+      const idMv = await db.stockMovements.add(mv);
+      mouvementsCrees.push({ ...mv, id: idMv });
     }
 
+    const syncIdVente = UUID();
     const venteId = await db.sales.add({
       numero,
       date,
@@ -332,35 +431,65 @@ export async function creerVente(e: EntreeVente): Promise<number> {
       clientId: e.clientId,
       sellerId: e.vendeurId,
       statut: 'vendue',
+      syncId: syncIdVente,
+      boutiqueId,
+      updatedAt: Date.now(),
     });
 
+    const venteCree = await db.sales.get(venteId);
+    let detteCree: Dette | undefined;
+    let paiementCree: PaiementDette | undefined;
+
     if (e.mode === 'credit') {
+      const client = e.clientId ? await db.customers.get(e.clientId) : undefined;
       const dette: Dette = {
         clientId: e.clientId!,
+        clientSyncId: client?.syncId,
         venteId,
+        venteSyncId: syncIdVente,
         date,
         echeance: e.echeance,
         montant: total,
         montantPaye,
         statut: montantPaye >= total ? 'soldee' : 'en_cours',
+        syncId: UUID(),
+        boutiqueId,
+        updatedAt: Date.now(),
       };
       const detteId = await db.debts.add(dette);
+      detteCree = (await db.debts.get(detteId)) ?? dette;
       // L'acompte versé à la vente est consigné comme paiement (traçabilité de la dette).
       if (montantPaye > 0) {
-        await db.debtPayments.add({
+        const paiement: PaiementDette = {
           detteId,
+          detteSyncId: dette.syncId,
           date,
           montant: montantPaye,
           mode: 'especes',
           note: 'Acompte versé à la vente',
           userId: e.vendeurId,
           aLaVente: true,
-        });
+          syncId: UUID(),
+          boutiqueId,
+          updatedAt: Date.now(),
+        };
+        const idPaiement = await db.debtPayments.add(paiement);
+        paiementCree = (await db.debtPayments.get(idPaiement)) ?? paiement;
       }
     }
 
-    return venteId;
+    return { venteId, vente: venteCree, produits: produitsMaj, mouvements: mouvementsCrees, dette: detteCree, paiement: paiementCree };
   });
+
+  void import('../sync/service').then(({ enfiler }) => {
+    if (resultat.vente) void enfiler('sales', resultat.vente as unknown as Record<string, unknown>, 'insert');
+    for (const p of resultat.produits) void enfiler('products', p as unknown as Record<string, unknown>, 'update');
+    for (const m of resultat.mouvements) void enfiler('stockMovements', m as unknown as Record<string, unknown>, 'insert');
+    if (resultat.dette) void enfiler('debts', resultat.dette as unknown as Record<string, unknown>, 'insert');
+    if (resultat.paiement) void enfiler('debtPayments', resultat.paiement as unknown as Record<string, unknown>, 'insert');
+  });
+
+  return resultat.venteId;
 }
 
 /**
@@ -433,14 +562,26 @@ export async function encaisserDette(detteId: number, input: { montant: number; 
 export async function creerDetteManuelle(input: { clientId: number; montant: number; motif?: string; echeance?: number; date?: number }): Promise<void> {
   const montant = Math.round(input.montant);
   if (montant <= 0) throw new Error('Le montant doit être supérieur à zéro.');
-  await db.debts.add({
+  const settings = await lireSettings();
+  const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const client = await db.customers.get(input.clientId);
+  const dette: Dette = {
     clientId: input.clientId,
+    clientSyncId: client?.syncId,
     date: input.date ?? Date.now(),
     echeance: input.echeance,
     montant,
     montantPaye: 0,
     statut: 'en_cours',
     motif: input.motif?.trim() || 'Dette existante',
+    syncId: UUID(),
+    boutiqueId,
+    updatedAt: Date.now(),
+  };
+  const idDette = await db.debts.add(dette);
+  const cree = (await db.debts.get(idDette)) ?? dette;
+  void import('../sync/service').then(({ enfiler }) => {
+    void enfiler('debts', cree as unknown as Record<string, unknown>, 'insert');
   });
 }
 
@@ -450,19 +591,35 @@ export async function creerUtilisateur(input: { nom: string; role: User['role'];
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom est obligatoire.');
   const pinHash = await hacherPin(input.pin);
-  return db.users.add({
+  const settings = await lireSettings();
+  const boutiqueId = input.boutiqueId ?? settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const user: User = {
     nom,
     role: input.role,
     pinHash,
     actif: true,
-    boutiqueId: input.boutiqueId ?? 'app',
+    boutiqueId,
     gerantId: input.gerantId,
+    syncId: UUID(),
+    updatedAt: Date.now(),
+  };
+  const id = await db.users.add(user);
+  const cree = (await db.users.get(id)) ?? user;
+  void import('../sync/service').then(({ enfiler }) => {
+    void enfiler('users', cree as unknown as Record<string, unknown>, 'insert');
   });
+  return id;
 }
 
 export async function redefinirPin(userId: number, pin: string): Promise<void> {
   const pinHash = await hacherPin(pin);
-  await db.users.update(userId, { pinHash });
+  await db.users.update(userId, { pinHash, updatedAt: Date.now() });
+  const user = await db.users.get(userId);
+  if (user) {
+    void import('../sync/service').then(({ enfiler }) => {
+      void enfiler('users', user as unknown as Record<string, unknown>, 'update');
+    });
+  }
 }
 
 export async function supprimerUtilisateur(userId: number): Promise<void> {
@@ -488,7 +645,13 @@ export async function majUtilisateur(userId: number, modifs: Partial<Omit<User, 
     }
   }
   const { ...reste } = modifs;
-  await db.users.update(userId, reste);
+  await db.users.update(userId, { ...reste, updatedAt: Date.now() });
+  const user = await db.users.get(userId);
+  if (user) {
+    void import('../sync/service').then(({ enfiler }) => {
+      void enfiler('users', user as unknown as Record<string, unknown>, 'update');
+    });
+  }
 }
 
 /* ------------------------------------ Catégories ------------------------------------ */
@@ -508,8 +671,14 @@ export async function ajouterCategorie(nom: string, couleur?: string): Promise<n
   if (!n) throw new Error('Le nom de la catégorie est obligatoire.');
   const existe = await db.categories.where('nom').equals(n).count();
   if (existe > 0) throw new Error('Cette catégorie existe déjà.');
-  const cat: Category = { nom: n, couleur };
-  return db.categories.add(cat);
+  const settings = await lireSettings();
+  const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
+  const cat: Category = { nom: n, couleur, boutiqueId, syncId: UUID(), updatedAt: Date.now() };
+  const id = await db.categories.add(cat);
+  void import('../sync/service').then(({ enfiler }) => {
+    void enfiler('categories', { ...cat, id } as unknown as Record<string, unknown>, 'insert');
+  });
+  return id;
 }
 
 export async function supprimerCategorie(categoryId: number): Promise<void> {

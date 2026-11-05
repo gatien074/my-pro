@@ -2,6 +2,13 @@
 
 export type Role = 'gerant' | 'caissier';
 
+/**
+ * Identifiant universel pour la synchronisation multi-appareils.
+ * - `undefined`/`null` : ligne uniquement locale (ancienne donnée).
+ * - `string` : UUID stable partagé entre appareils.
+ */
+export type SyncId = string;
+
 export type ModePaiement = 'especes' | 'airtel' | 'moov' | 'credit';
 
 export type StatutVente = 'vendue' | 'annulee';
@@ -22,6 +29,12 @@ export interface Settings {
   autoriserStockNegatif: boolean;
   verrouillageAuto?: boolean;
   creeLe: number;
+  /** Identifiant de synchronisation pour Supabase / temps réel. */
+  syncId?: SyncId;
+  /** Identifiant stable de la boutique partagé entre appareils. */
+  boutiqueId?: string;
+  /** Dernière mise à jour locale (ms), utilisée pour résoudre les conflits. */
+  updatedAt?: number;
 }
 
 export interface User {
@@ -34,12 +47,17 @@ export interface User {
   boutiqueId?: string;
   /** Pour un caissier : gérant auquel ce compte est rattaché. */
   gerantId?: number;
+  syncId?: SyncId;
+  updatedAt?: number;
 }
 
 export interface Category {
   id?: number;
   nom: string;
   couleur?: string;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 export interface Produit {
@@ -55,10 +73,15 @@ export interface Produit {
   actif: boolean;
   imageUrl?: string;
   creeLe: number;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  categorySyncId?: SyncId;
+  updatedAt?: number;
 }
 
 export interface LigneVente {
   produitId: number;
+  produitSyncId?: SyncId;
   nom: string;
   unite: string;
   /** Prix d'achat figé au moment de la vente, pour un bénéfice exact. */
@@ -79,20 +102,29 @@ export interface Vente {
   /** Montant encaissé à la vente (montant reçu ou acompte en cas de crédit). */
   montantPaye: number;
   clientId?: number;
+  clientSyncId?: SyncId;
   sellerId?: number;
   statut: StatutVente;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 export interface MouvementStock {
   id?: number;
   produitId: number;
+  produitSyncId?: SyncId;
   type: TypeMouvement;
   /** Variation appliquée au stock (signée : négative = sortie). */
   quantite: number;
   motif?: string;
   date: number;
   venteId?: number;
+  venteSyncId?: SyncId;
   userId?: number;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 export interface Client {
@@ -101,23 +133,32 @@ export interface Client {
   telephone?: string;
   note?: string;
   creeLe: number;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 export interface Dette {
   id?: number;
   clientId: number;
+  clientSyncId?: SyncId;
   venteId?: number;
+  venteSyncId?: SyncId;
   date: number;
   echeance?: number;
   montant: number;
   montantPaye: number;
   statut: StatutDette;
   motif?: string;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 export interface PaiementDette {
   id?: number;
   detteId: number;
+  detteSyncId?: SyncId;
   date: number;
   montant: number;
   mode: Exclude<ModePaiement, 'credit'>;
@@ -125,6 +166,9 @@ export interface PaiementDette {
   userId?: number;
   /** Acompte versé à la vente à crédit (et non un remboursement ultérieur). */
   aLaVente?: boolean;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }
 
 /** Clôture de caisse d'une journée : fond de caisse, espèces attendues et écart. */
@@ -139,4 +183,7 @@ export interface ClotureCaisse {
   ecart: number;
   fermeLe: number;
   userId?: number;
+  syncId?: SyncId;
+  boutiqueId?: string;
+  updatedAt?: number;
 }

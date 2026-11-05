@@ -8,6 +8,12 @@ if (import.meta.env.PROD) {
   registerSW({ immediate: true });
 }
 
+if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  void import('./sync/service').then(({ bootstrapSynchronisation }) => {
+    void bootstrapSynchronisation().catch((err) => console.error('Sync Supabase:', err));
+  });
+}
+
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error);
   // En cas d'erreur Dexie critique, proposer de réinitialiser

@@ -121,6 +121,7 @@ export interface InputProduit {
 }
 
 export async function enregistrerProduit(input: InputProduit, id?: number, userId?: number): Promise<number> {
+  await db.open(); // S'assurer que Dexie et tous les stores sont ouverts
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom du produit est obligatoire.');
   if (input.prixAchat < 0 || input.prixVente < 0) throw new Error('Les prix ne peuvent pas être négatifs.');
@@ -227,6 +228,7 @@ export interface InputMouvement {
 
 /** Entrée de stock, perte ou ajustement d'inventaire. */
 export async function enregistrerMouvementStock(input: InputMouvement): Promise<void> {
+  await db.open(); // S'assurer que Dexie et tous les stores sont ouverts
   const settings = await lireSettings();
   const boutiqueId = settings?.boutiqueId ?? settings?.syncId ?? UUID();
   const resultat = await db.transaction('rw', [db.products, db.stockMovements], async () => {
@@ -278,6 +280,7 @@ export async function enregistrerMouvementStock(input: InputMouvement): Promise<
 /* ------------------------------------ Clients ----------------------------------- */
 
 export async function enregistrerClient(input: { nom: string; telephone?: string; note?: string }): Promise<number> {
+  await db.open();
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom du client est obligatoire.');
   const settings = await lireSettings();
@@ -543,6 +546,7 @@ export async function encaisserDette(detteId: number, input: { montant: number; 
 
 /** Dette de l'ancien cahier (sans vente associée). */
 export async function creerDetteManuelle(input: { clientId: number; montant: number; motif?: string; echeance?: number; date?: number }): Promise<void> {
+  await db.open();
   const montant = Math.round(input.montant);
   if (montant <= 0) throw new Error('Le montant doit être supérieur à zéro.');
   const settings = await lireSettings();
@@ -571,6 +575,7 @@ export async function creerDetteManuelle(input: { clientId: number; montant: num
 /* ---------------------------------- Utilisateurs ---------------------------------- */
 
 export async function creerUtilisateur(input: { nom: string; role: User['role']; pin: string; gerantId?: number; boutiqueId?: string }): Promise<number> {
+  await db.open();
   const nom = input.nom.trim();
   if (!nom) throw new Error('Le nom est obligatoire.');
   const pinHash = await hacherPin(input.pin);
@@ -595,6 +600,7 @@ export async function creerUtilisateur(input: { nom: string; role: User['role'];
 }
 
 export async function redefinirPin(userId: number, pin: string): Promise<void> {
+  await db.open();
   const pinHash = await hacherPin(pin);
   await db.users.update(userId, { pinHash, updatedAt: Date.now() });
   const user = await db.users.get(userId);
@@ -606,6 +612,7 @@ export async function redefinirPin(userId: number, pin: string): Promise<void> {
 }
 
 export async function supprimerUtilisateur(userId: number): Promise<void> {
+  await db.open();
   const cible = await db.users.get(userId);
   if (!cible) throw new Error('Utilisateur introuvable.');
   if (cible.role === 'gerant' && cible.actif) {
@@ -619,6 +626,7 @@ export async function supprimerUtilisateur(userId: number): Promise<void> {
 }
 
 export async function majUtilisateur(userId: number, modifs: Partial<Omit<User, 'id' | 'pinHash'>>): Promise<void> {
+  await db.open();
   if (modifs.actif === false || (modifs.role && modifs.role !== 'gerant')) {
     const actifs = await db.users.where('role').equals('gerant').toArray();
     const cible = await db.users.get(userId);
@@ -641,6 +649,7 @@ export async function majUtilisateur(userId: number, modifs: Partial<Omit<User, 
 
 /** Crée les catégories par défaut si elles n'existent pas encore. */
 export async function creerCategoriesParDefaut(): Promise<number> {
+  await db.open();
   const existantes = await db.categories.toArray();
   const nomsExistants = new Set(existantes.map((c) => c.nom.toLowerCase()));
   const aAjouter = CATEGORIES_PAR_DEFAUT.filter((c) => !nomsExistants.has(c.nom.toLowerCase()));
@@ -650,6 +659,7 @@ export async function creerCategoriesParDefaut(): Promise<number> {
 }
 
 export async function ajouterCategorie(nom: string, couleur?: string): Promise<number> {
+  await db.open();
   const n = nom.trim();
   if (!n) throw new Error('Le nom de la catégorie est obligatoire.');
   const existe = await db.categories.where('nom').equals(n).count();
@@ -665,6 +675,7 @@ export async function ajouterCategorie(nom: string, couleur?: string): Promise<n
 }
 
 export async function supprimerCategorie(categoryId: number): Promise<void> {
+  await db.open();
   const nb = await db.products.where('categoryId').equals(categoryId).count();
   if (nb > 0) throw new Error('Impossible : des produits utilisent cette catégorie.');
   await db.categories.delete(categoryId);

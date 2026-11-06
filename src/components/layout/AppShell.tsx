@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Boxes, CreditCard, Lock, Package, Settings, ShoppingCart, ShoppingBag, Users } from 'lucide-react';
 import { useSettings } from '../../db/hooks';
@@ -24,7 +24,6 @@ const navigation: Array<{ vers: string; libelle: string; icone: typeof ShoppingC
 
 export function AppShell() {
   const { settings, enChargement } = useSettings();
-  const [demarragePret, setDemarragePret] = useState(false);
   const utilisateur = useSession((s) => s.utilisateur);
   const deconnecter = useSession((s) => s.deconnecter);
   const location = useLocation();
@@ -32,11 +31,6 @@ export function AppShell() {
   const lignes = usePanier((s) => s.lignes);
   const nbArticles = lignes.reduce((s, l) => s + l.quantite, 0);
   useAlerteRuptures();
-
-  useEffect(() => {
-    const minuteur = setTimeout(() => setDemarragePret(true), 8000);
-    return () => clearTimeout(minuteur);
-  }, []);
 
   // Nettoyage unique des anciennes données de démonstration.
   useEffect(() => {
@@ -63,7 +57,7 @@ export function AppShell() {
     })();
   }, [settings, deconnecter, navigate]);
 
-  if (enChargement || !demarragePret) return <Chargement texte="Chargement…" />;
+  if (enChargement) return <Chargement texte="Chargement…" />;
   if (!settings) return <Navigate to="/onboarding" replace />;
 
   const verrouillageAuto = settings.verrouillageAuto ?? true;
